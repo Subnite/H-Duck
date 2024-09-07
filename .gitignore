@@ -1,0 +1,10 @@
+.cache/
+.vscode/
+HentaiDuck/
+Makefile/
+build/
+bin/
+builds/
+*.xml
+*.filtergraph
+todo.md
