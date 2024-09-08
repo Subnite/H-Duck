@@ -7,6 +7,7 @@
 */
 
 #include "PluginProcessor.h"
+#include "Curve.h"
 #include "PluginEditor.h"
 #include <algorithm>
 #include <mutex>
@@ -27,6 +28,7 @@ HentaiDuckProcessor::HentaiDuckProcessor()
 {
     resizeCurve(getSampleRate()/2);
     if (!vTree.isValid()) vTree.create();
+    updateCurveValues(duck::curve::CurveDisplay::getTreeNormalizedPoints(vTree));
 }
 
 HentaiDuckProcessor::~HentaiDuckProcessor()
@@ -65,12 +67,12 @@ void HentaiDuckProcessor::applyCurve(juce::AudioBuffer<float> &buffer) {
     }
 }
 
-void HentaiDuckProcessor::updateCurveValues(const duck::curve::CurveDisplay& display){
+void HentaiDuckProcessor::updateCurveValues(const std::vector<duck::curve::Point<float>>& normalizedPoints) {
     auto lock = std::lock_guard<std::mutex>(curveGuard);
 
     for (size_t i = 0; i < curveMultiplier.size(); i++){
         float normX = i / static_cast<float>(curveMultiplier.size()-1);
-        curveMultiplier[i] = display.getCurveAtNormalized(normX);
+        curveMultiplier[i] = duck::curve::CurveDisplay::getCurveAtNormalized(normX, normalizedPoints);
     }
 }
 
@@ -80,6 +82,7 @@ void HentaiDuckProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     resizeCurve(sampleRate/2);
+    if (vTree.isValid()) updateCurveValues(duck::curve::CurveDisplay::getTreeNormalizedPoints(vTree));
 }
 
 void HentaiDuckProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -243,6 +246,7 @@ void HentaiDuckProcessor::setStateInformation (const void* data, int sizeInBytes
     
     vTree.copyFrom(data, sizeInBytes);
     if (!vTree.isValid()) vTree.create();
+    updateCurveValues(duck::curve::CurveDisplay::getTreeNormalizedPoints(vTree));
     // vTree.createXML("C:/Dev/Juce Projects/HentaiDuck/setStateOutputTree.xml");
 }
 

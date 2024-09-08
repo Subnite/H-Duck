@@ -41,7 +41,7 @@ duck::curve::CurveDisplay::CurveDisplay(duck::vt::ValueTree& tree)
 
     // don't really need the listener, just push data and pull when created.
     // tree.addListener(this);
-    auto newPoints = getTreeNormalizedPoints();
+    auto newPoints = getTreeNormalizedPoints(vTree);
     if (newPoints.size() >= 2) curvePointsNormalized = newPoints; 
     updateResizedCurve();
 }
@@ -95,7 +95,7 @@ void duck::curve::CurveDisplay::resized() {
     updateResizedCurve();
 }
 
-float duck::curve::CurveDisplay::interpolatePoints(const duck::curve::Point<float>& from, const duck::curve::Point<float>& to, float x) const {
+float duck::curve::CurveDisplay::interpolatePoints(const duck::curve::Point<float>& from, const duck::curve::Point<float>& to, float x) {
     if (from.coords.x == to.coords.x) return to.coords.y;
 
     float height = to.coords.y - from.coords.y;
@@ -153,7 +153,7 @@ void duck::curve::CurveDisplay::mouseDrag(const juce::MouseEvent& event) {
     auto bounds = getLocalBounds();
 
     // find the point to change the curve of
-    int pointToPowerIndex = findPointPositionIndex(clickPos.x);
+    int pointToPowerIndex = findPointPositionIndex(clickPos.x, curvePointsResizedBounds);
 
     // check if you're draggin or supposed to drag a point.
     auto checkPoint = juce::Point<float>(clickPos.x + offset.x, clickPos.y + offset.y);
@@ -226,7 +226,7 @@ void duck::curve::CurveDisplay::mouseUp(const juce::MouseEvent& event) {
 }
 
 void duck::curve::CurveDisplay::mouseDoubleClick(const juce::MouseEvent& event) {
-    int pointIndex = findPointPositionIndex(event.mouseDownPosition.x);
+    int pointIndex = findPointPositionIndex(event.mouseDownPosition.x, curvePointsResizedBounds);
     if (pointIndex == -1) return; // safety check
 
     auto bounds = getLocalBounds();
@@ -250,18 +250,18 @@ void duck::curve::CurveDisplay::mouseDoubleClick(const juce::MouseEvent& event) 
 
     // straighten curve
     else {
-        int pointIndex = findPointPositionIndex(event.mouseDownPosition.x);
+        int pointIndex = findPointPositionIndex(event.mouseDownPosition.x, curvePointsResizedBounds);
         if (pointIndex != -1) curvePointsNormalized[pointIndex].setPowerClamped(0.0f);
     }
 
     updateResizedCurve();
 }
 
-int duck::curve::CurveDisplay::findPointPositionIndex(float x) const {
+int duck::curve::CurveDisplay::findPointPositionIndex(float x, const std::vector<duck::curve::Point<float>>& points) {
     int pointToPowerIndex = -1;
-    for (size_t i = 0; i < curvePointsResizedBounds.size()-1 && curvePointsResizedBounds.size() >= 2; i++) {
-        const auto currentX = curvePointsResizedBounds[i].coords.x;
-        const auto nextX = curvePointsResizedBounds[i+1].coords.x;
+    for (size_t i = 0; i < points.size()-1 && points.size() >= 2; i++) {
+        const auto currentX = points[i].coords.x;
+        const auto nextX = points[i+1].coords.x;
         if (x >= currentX && x <= nextX){
             pointToPowerIndex = i;
             break;
@@ -290,14 +290,14 @@ int duck::curve::CurveDisplay::isOverPoint(const juce::Point<float>& position) c
     return index;
 }
 
-float duck::curve::CurveDisplay::getCurveAtNormalized(float normalizedX) const {
-    int pos = findPointPositionIndex(normalizedX * getLocalBounds().getWidth());
+float duck::curve::CurveDisplay::getCurveAtNormalized(float normalizedX, const std::vector<duck::curve::Point<float>>& normalizedPoints) {
+    int pos = findPointPositionIndex(normalizedX, normalizedPoints);
     jassert(pos != -1);
 
-    if (normalizedX == 0) return curvePointsNormalized[0].coords.y;
-    else if (normalizedX == 1) return curvePointsNormalized.back().coords.y;
+    if (normalizedX == 0) return normalizedPoints[0].coords.y;
+    else if (normalizedX == 1) return normalizedPoints.back().coords.y;
 
-    return interpolatePoints(curvePointsNormalized[pos], curvePointsNormalized[pos+1], normalizedX);
+    return interpolatePoints(normalizedPoints[pos], normalizedPoints[pos+1], normalizedX);
 }
 
 
@@ -330,7 +330,7 @@ void duck::curve::CurveDisplay::changePoint(juce::ValueTree& treeWhosePropertyHa
     }
 }
 
-std::vector<duck::curve::Point<float>> duck::curve::CurveDisplay::getTreeNormalizedPoints() const {
+std::vector<duck::curve::Point<float>> duck::curve::CurveDisplay::getTreeNormalizedPoints(const duck::vt::ValueTree& vTree) {
     const auto vtRoot = vTree.getRoot();
     const auto curve = vtRoot.getChildWithName("CurveData");
     const auto points = curve.getChildWithName("NormalizedPoints");

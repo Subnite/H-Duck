@@ -39,10 +39,8 @@ private:
     // updates the curvePointsResizedBounds to match the new curvePointNormalized, then remakes the path and repaints.
     void updateResizedCurve(); 
     void updatePathSection(const duck::curve::Point<float>& from, const duck::curve::Point<float>& to);
-    // @param x should be between the two points.
-    float interpolatePoints(const duck::curve::Point<float>& from, const duck::curve::Point<float>& to, float x) const;
     // looks for x in the BOUNDS of this component. -1 if not found
-    int findPointPositionIndex(float x) const;
+    static int findPointPositionIndex(float x, const std::vector<duck::curve::Point<float>>& points);
     int isOverPoint(const juce::Point<float>& position) const; // returns -1 if not over a point, otherwise returns index of the point
 
 
@@ -50,14 +48,18 @@ private:
     // value tree stuff
     void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier &property) override;
     void changePoint(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property);
-    std::vector<duck::curve::Point<float>> getTreeNormalizedPoints() const;
     void updateTree() const;
 public:
     CurveDisplay(duck::vt::ValueTree& tree);
     ~CurveDisplay(){updateTree();};
     
-    float getCurveAtNormalized(float normalizedX) const;
+    static float getCurveAtNormalized(float normalizedX, const std::vector<duck::curve::Point<float>>& normalizedPoints);
     std::function<void()> onCurveUpdated = [](){};
+    // @param x should be between the two points.
+    static float interpolatePoints(const duck::curve::Point<float>& from, const duck::curve::Point<float>& to, float x);
+    // returns a copy of the current normalized points.
+    std::vector<duck::curve::Point<float>> getNormalizedPoints() const {return curvePointsNormalized;}
+    static std::vector<duck::curve::Point<float>> getTreeNormalizedPoints(const duck::vt::ValueTree& vTree);
 private:
     duck::vt::ValueTree& vTree;
     juce::Path path;

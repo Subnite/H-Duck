@@ -58,7 +58,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     //==============================================================================
-    void updateCurveValues(const duck::curve::CurveDisplay& display);
+    void updateCurveValues(const std::vector<duck::curve::Point<float>>& normalizedPoints);
     duck::vt::ValueTree vTree{};
 private:
     std::vector<float> curveMultiplier; // list of multiplier for the curve

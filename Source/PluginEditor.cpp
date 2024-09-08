@@ -21,8 +21,10 @@ HentaiDuckEditor::HentaiDuckEditor(HentaiDuckProcessor& p)
     setResizeLimits(250, 250, 1500, 1000);
 
     curveDisplay.onCurveUpdated = [this](){
-        audioProcessor.updateCurveValues(curveDisplay);
+        audioProcessor.updateCurveValues(curveDisplay.getNormalizedPoints());
     };
+
+    curveDisplay.onCurveUpdated();
 
     addAndMakeVisible(&curveDisplay);
 }
