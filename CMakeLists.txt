@@ -22,5 +22,5 @@ cmake_minimum_required(VERSION 3.15)
 set (CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # will create compile_commands.json for include paths etc IF GENERATOR IS A MAKEFILE like MinGW Makefiles
 
-project(${PLUGIN_PROJECT_NAME} VERSION 1.0.0)
+project(${PLUGIN_PROJECT_NAME} VERSION 0.1.0)
 add_subdirectory(Source) # creates the plugin, set other params in there
