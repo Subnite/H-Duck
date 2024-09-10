@@ -81,7 +81,7 @@ void duck::curve::CurveDisplay::paint(juce::Graphics &g) {
     const auto type = juce::PathStrokeType(3.f);
     g.strokePath(path, type);
 
-    g.setColour(juce::Colours::black);
+    g.setColour(juce::Colours::white.withLightness(0.9f));
     for (const auto& point : curvePointsResizedBounds){
         float size = point.size;
         g.fillEllipse(point.coords.x-size/2, point.coords.y-size/2, size, size);

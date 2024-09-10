@@ -11,22 +11,34 @@
 //==============================================================================
 HentaiDuckEditor::HentaiDuckEditor(HentaiDuckProcessor& p)
     : AudioProcessorEditor(&p), audioProcessor(p),
-    curveDisplay(audioProcessor.vTree)
+    curveDisplay(audioProcessor.vTree),
+    lengthSliderMs(0.f, 500.f, 50.f)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
-    setSize (500, 500);
+    setSize (800, 500);
     setResizable(true, true);
-    setResizeLimits(250, 250, 1500, 1000);
+    setResizeLimits(400, 250, 1500, 1000);
+
+    // update curveDisplay settings
 
     curveDisplay.onCurveUpdated = [this](){
         audioProcessor.updateCurveValues(curveDisplay.getNormalizedPoints());
     };
 
-    curveDisplay.onCurveUpdated();
+    curveDisplay.onCurveUpdated(); // initial update
+    
+    // update lengthSliderMs settings
+    lengthSliderMs.setValuePrefix("Length: ");
+    lengthSliderMs.setValuePostfix(" ms");
+    lengthSliderMs.valueToString = [](const float& val)->std::string{
+        return juce::String(val, 2, false).toStdString();
+    };
 
+    // make all visible
     addAndMakeVisible(&curveDisplay);
+    addAndMakeVisible(&lengthSliderMs);
 }
 
 HentaiDuckEditor::~HentaiDuckEditor()
@@ -36,18 +48,32 @@ HentaiDuckEditor::~HentaiDuckEditor()
 
 //==============================================================================
 void HentaiDuckEditor::paint (juce::Graphics& g)
-{
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll(juce::Colours::red.withSaturation(0.2f).withBrightness(0.35f));
-}
+    {
+        // (Our component is opaque, so we must completely fill the background with a solid colour)
+        g.fillAll(juce::Colours::purple.withSaturation(0.5f).withBrightness(0.10f));
+
+        auto bounds = curveDisplay.getBounds();
+        g.setColour(juce::Colours::grey.withLightness(0.6f));
+        g.drawRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 5.f, 3.f);
+
+        bounds = lengthSliderMs.getBounds();
+
+        g.drawRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 5.f, 3.f);
+
+    }
 
 void HentaiDuckEditor::resized()
 {
     auto bounds = getLocalBounds();
-    size_t removeAmt = 50;
     auto paddedBounds = bounds.withSizeKeepingCentre(
-        bounds.getWidth() - removeAmt,
-        bounds.getHeight() - removeAmt
+        bounds.getWidth() - sectionPadding,
+        bounds.getHeight() - sectionPadding
     );
+
+    auto buttonsBounds = paddedBounds.removeFromRight(paddedBounds.getWidth()*0.3f);
+    buttonsBounds.removeFromLeft(sectionPadding);
+
     curveDisplay.setBounds(paddedBounds);
+    lengthSliderMs.setBounds(buttonsBounds);
+
 }
