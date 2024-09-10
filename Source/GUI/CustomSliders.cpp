@@ -1,20 +1,13 @@
 #include "CustomSliders.h"
-#include "juce_graphics/juce_graphics.h"
+#include "ValueTreeManager.h"
 #include <algorithm>
 
-// template <typename T>
-// using Sl = subnite::Slider<T>;
-
-// template <typename T>
-// std::function<std::string(const T& value)> Sl<T>::valueToString = [](const T& value){
-//     return std::to_string(value);
-// };
-//
 
 template <typename T>
-subnite::Slider<T>::Slider(T minValue, T maxValue, T defaultValue)
+subnite::Slider<T>::Slider(T minValue, T maxValue, T defaultValue, duck::vt::ValueTree* vTree)
     : normalizedRawValue(0), displayedValue(defaultValue),
-    minValue(minValue), maxValue(maxValue), defaultValue(defaultValue)
+    minValue(minValue), maxValue(maxValue), defaultValue(defaultValue),
+    vTree(vTree)
 {
     jassert(minValue < maxValue); // Minimum value should be lower than max
     jassert(defaultValue >= minValue && defaultValue <= maxValue); // Default value should be between [min : max] inclusive
@@ -22,14 +15,17 @@ subnite::Slider<T>::Slider(T minValue, T maxValue, T defaultValue)
     T range = maxValue - minValue;
     T v = defaultValue - minValue;
     normalizedRawValue = v / static_cast<double>(range);
-
     updateDisplayedValueChecked();
+
+    getFromValueTree();
 }
 
 template<typename T>
 subnite::Slider<T>::~Slider(){
     // maybe make sure that the mouse is normal
     setMouseCursor(juce::MouseCursor::NormalCursor);
+
+    updateValueTree();
 }
 
 /*
@@ -74,6 +70,59 @@ double subnite::Slider<T>::getValueAngle(const double& minAngle, const double& m
     return normalizedRawValue * range + minAngle;
 }
 
+template<typename T>
+void subnite::Slider<T>::getFromValueTree() {
+    if (vTree == nullptr) return;
+
+    using vt = duck::vt::ValueTree;
+    using tree = duck::vt::Tree;
+    using prop = duck::vt::Property;
+
+    const auto sliderID = vt::getIDFromType(tree::LS_LENGTH_MS);
+    const auto rawID = vt::getIDFromType(prop::LS_RAW_NORMALIZED_VALUE);
+    const auto minValueID = vt::getIDFromType(prop::LS_MIN_VALUE);
+    const auto maxValueID = vt::getIDFromType(prop::LS_MAX_VALUE);
+    const auto isMsID = vt::getIDFromType(prop::LS_IS_MS);
+
+    auto slider = vTree->getRoot().getChildWithName(sliderID);
+    if (!slider.isValid()) return; // didn't exist or wasn't child of root
+    
+    auto raw = static_cast<double>(slider.getProperty(rawID));
+    auto min = static_cast<double>(slider.getProperty(minValueID));
+    auto max = static_cast<double>(slider.getProperty(maxValueID));
+    auto isMs = static_cast<bool>(slider.getProperty(isMsID));
+    
+    normalizedRawValue = raw;
+    minValue = min;
+    maxValue = max;
+    // isMS is not accounted yet.
+    
+    updateDisplayedValueChecked();
+}
+
+template<typename T>
+void subnite::Slider<T>::updateValueTree() {
+    if (vTree == nullptr) return;
+
+    using vt = duck::vt::ValueTree;
+    using tree = duck::vt::Tree;
+    using prop = duck::vt::Property;
+
+    const auto sliderID = vt::getIDFromType(tree::LS_LENGTH_MS);
+    const auto rawID = vt::getIDFromType(prop::LS_RAW_NORMALIZED_VALUE);
+    const auto minValueID = vt::getIDFromType(prop::LS_MIN_VALUE);
+    const auto maxValueID = vt::getIDFromType(prop::LS_MAX_VALUE);
+    const auto isMsID = vt::getIDFromType(prop::LS_IS_MS);
+    
+    juce::ValueTree slider{sliderID};
+
+    slider.setProperty(rawID, normalizedRawValue, nullptr);
+    slider.setProperty(minValueID, minValue, nullptr);
+    slider.setProperty(maxValueID, maxValue, nullptr);
+    slider.setProperty(isMsID, true, nullptr); // this will be a variable later
+    
+    vTree->setChild(tree::LS_LENGTH_MS, slider);
+}
 
 // ============= Visuals   =================
 
@@ -136,6 +185,8 @@ void subnite::Slider<T>::mouseUp(const juce::MouseEvent& e) {
     lastDragOffset.setXY(0, 0);
     // should reset mouse position but idk how
     Desktop::getInstance().getMainMouseSource().setScreenPosition(e.getMouseDownScreenPosition().toFloat());
+
+    updateValueTree();
 }
 
 template <typename T>
@@ -160,6 +211,8 @@ void subnite::Slider<T>::mouseDoubleClick(const juce::MouseEvent& e) {
         setValue(defaultValue);
         repaint();
     }
+
+    updateValueTree();
 }
 
 

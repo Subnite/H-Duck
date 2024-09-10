@@ -2,13 +2,14 @@
 #include <JuceHeader.h>
 #include <functional>
 #include <string>
+#include "ValueTreeManager.h"
 
 namespace subnite {
 
 template<typename T>
 class Slider : public juce::Component {
 public:
-    Slider(T minValue, T maxValue, T defaultValue);
+    Slider(T minValue, T maxValue, T defaultValue, duck::vt::ValueTree* vTree);
     ~Slider();
 
     // no prefix or postfix needed, just the value as a string. This is not the normalized value, but displayed.
@@ -27,18 +28,22 @@ public:
 
     std::string getValueString() const; // returns the display value as a string with pre and postfix
     double getValueAngle(const double& minAngle, const double& maxAngle) const; // maps the normalizedValue to the range provided.
+    void getFromValueTree(); // replaces the state of this class from values in the value tree.
+    void updateValueTree(); // updates the valuetree if it exists
 private:
     double normalizedRawValue; // always from 0 to 1, used for value calculations
     T displayedValue; // between min and max, used for displayed values
-    const T minValue, maxValue, defaultValue;
+    T minValue, maxValue, defaultValue;
     bool displayValueOnHover = true;
+
+    duck::vt::ValueTree* vTree = nullptr;
 
     std::string prefix = "";
     std::string postfix = "";
 
     bool isHovering = false;
     juce::Point<int> lastDragOffset{0,0};
-
+    
     void updateDisplayedValueChecked(); // updates the display value, and checks if normalizedToDisplayed is between min and max inclusive. Otherwise clamp it.
     
     void paint(juce::Graphics &g) override;

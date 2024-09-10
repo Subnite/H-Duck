@@ -12,7 +12,7 @@
 HentaiDuckEditor::HentaiDuckEditor(HentaiDuckProcessor& p)
     : AudioProcessorEditor(&p), audioProcessor(p),
     curveDisplay(audioProcessor.vTree),
-    lengthSliderMs(0.f, 500.f, 50.f)
+    lengthSliderMs(0.f, 500.f, 50.f, &audioProcessor.vTree)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -35,6 +35,8 @@ HentaiDuckEditor::HentaiDuckEditor(HentaiDuckProcessor& p)
     lengthSliderMs.valueToString = [](const float& val)->std::string{
         return juce::String(val, 2, false).toStdString();
     };
+
+    lengthSliderMs.getFromValueTree();
 
     // make all visible
     addAndMakeVisible(&curveDisplay);

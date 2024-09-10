@@ -83,6 +83,10 @@ void duck::vt::ValueTree::create() {
     addPoint({0.3f, 0.3f}, -8.f, 50.f, 20.f);
     addPoint({0.5f, 0.f}, 0.f, 50.f, 20.f);
     addPoint({1.f, 0.f}, 0.f, 50.f, 20.f);
+
+    // juce::ValueTree lengthSliderTree{getIDFromType(duck::vt::Tree::LS_LENGTH_MS)};
+    // lengthSliderTree.setProperty(duck::vt::ValueTree::getIDFromType( duck::vt::Property::LS_IS_MS), {true}, nullptr);
+    // vtRoot.appendChild(lengthSliderTree, &undoManager);
 }
 
 void duck::vt::ValueTree::addListener(juce::ValueTree::Listener* listener) {
@@ -135,35 +139,63 @@ void duck::vt::ValueTree::writeToStream(juce::OutputStream& stream) const {
 
 void duck::vt::ValueTree::setChild(const duck::vt::Tree& type, juce::ValueTree& toTree) {
     const auto id = getIDFromType(type);
-    auto oldTree = getChildRecursive(id, vtRoot);
+    auto oldTree = vtRoot.getChildWithName(id);
+    //auto oldTree = getChildRecursive(id, vtRoot);
 
-    if (oldTree != nullptr && oldTree->isValid()){
-        auto parent = oldTree->getParent();
+    if (/*oldTree != nullptr &&*/ oldTree.isValid()){
+        auto parent = oldTree.getParent();
         if (parent.isValid()){
-            auto idx = parent.indexOf(*oldTree);
+            auto idx = parent.indexOf(oldTree);
             if (idx >= 0){
                 parent.removeChild(idx, &undoManager);
                 parent.appendChild(toTree, &undoManager);
             }
         }
+    } else {
+        // it didn't exist so create one
+        vtRoot.appendChild(toTree, &undoManager);
     }
 }
 
+// this doesn't work when using indexOf because it needs a ref, not a pointer. Can remake in the future, but don't use for now.
 juce::ValueTree* duck::vt::ValueTree::getChildRecursive(const juce::Identifier& id, juce::ValueTree& tree) {
     if (tree.hasType(id)) return &tree;
 
     juce::ValueTree* oldTree = nullptr;
 
     // auto& would be better but this might be fine
-    for (auto child : tree) {
+    for (size_t childIdx = 0; childIdx < tree.getNumChildren(); childIdx++) {
+        auto child = tree.getChild(childIdx);
+        auto name = child.getType().toString();
+        std::cout << "\n checking: " << name << "\n";
+        if (!child.isValid()) break; // annoying, might find but be invalid
+
         if (child.hasType(id)) {
             oldTree = &child;
-            break;
-        } else {
-            oldTree = getChildRecursive(id, tree);
-            if (oldTree != nullptr) break;
-        }
+            return oldTree;
+        } 
     }
+
+    // check children of the children
+    // if (oldTree == nullptr){
+    //     for (size_t childIdx = 0; childIdx < tree.getNumChildren(); childIdx++) {
+    //         if (oldTree != nullptr) return oldTree;
+    //         auto child = tree.getChild(childIdx);
+    //         auto name = child.getType().toString();
+    //         std::cout << "checking: " << name << "\n";
+
+    //         for (size_t childIdx2 = 0; childIdx2 < tree.getNumChildren(); childIdx2++) {
+    //             auto child2 = child.getChild(childIdx2);
+    //             auto name = child2.getType().toString();
+    //             std::cout << "checking: " << name << "\n";
+    //             if (!child2.isValid()) break;
+
+    //             oldTree = getChildRecursive(id, child2);
+    //             if (oldTree != nullptr) return oldTree;
+    //         }
+
+    //     }
+    // }
     
     return oldTree;
 }
