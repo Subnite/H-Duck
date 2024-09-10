@@ -5,21 +5,33 @@ namespace duck::vt {
 
 enum class Tree {
     ROOT,
+    
+    // CurveDisplay
+    CD_CURVE_DATA,
+    CD_NORMALIZED_POINTS,
+    CD_POINT,
+    CD_COORDS,
 
-    CURVE_DATA,
-    NORMALIZED_POINTS,
-    POINT,
-    COORDS,
+    // Length Slider
+    LS_LENGTH_MS,
 
     UNDEFINED
 };
 
 enum class Property {
-    POWER,
-    MAX_ABSOLUTE_POWER,
-    SIZE,
-    X,
-    Y,
+    // CurveDisplay
+    CD_POWER,
+    CD_MAX_ABSOLUTE_POWER,
+    CD_SIZE,
+    CD_X,
+    CD_Y,
+
+    // Length Slider
+    LS_IS_MS,
+    LS_RAW_NORMALIZED_VALUE,
+    LS_MIN_VALUE,
+    LS_MAX_VALUE,
+
 
     UNDEFINED
 };

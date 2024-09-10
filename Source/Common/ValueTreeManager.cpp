@@ -4,44 +4,64 @@ duck::vt::Tree duck::vt::ValueTree::getTreeType(const juce::ValueTree& tree) {
     const auto type = tree.getType().toString();
 
     if (type == "HentaiDuckRoot") return duck::vt::Tree::ROOT;
-    if (type == "CurveData") return duck::vt::Tree::CURVE_DATA;
-    if (type == "NormalizedPoints") return duck::vt::Tree::NORMALIZED_POINTS;
-    if (type == "Point") return duck::vt::Tree::POINT;
-    if (type == "Coords") return duck::vt::Tree::COORDS;
+    if (type == "CurveData") return duck::vt::Tree::CD_CURVE_DATA;
+    if (type == "NormalizedPoints") return duck::vt::Tree::CD_NORMALIZED_POINTS;
+    if (type == "Point") return duck::vt::Tree::CD_POINT;
+    if (type == "Coords") return duck::vt::Tree::CD_COORDS;
+
+    if (type == "LS_LengthMS") return duck::vt::Tree::LS_LENGTH_MS;
 
     return duck::vt::Tree::UNDEFINED;
+}
+
+
+juce::Identifier duck::vt::ValueTree::getIDFromType(const duck::vt::Tree& tree) {
+    switch (tree) {
+        case duck::vt::Tree::ROOT : return {"HentaiDuckRoot"}; break;
+
+        case duck::vt::Tree::CD_CURVE_DATA : return {"CurveData"}; break;
+        case duck::vt::Tree::CD_NORMALIZED_POINTS : return {"NormalizedPoints"}; break;
+        case duck::vt::Tree::CD_POINT : return {"Point"}; break;
+        case duck::vt::Tree::CD_COORDS : return {"Coords"}; break;
+
+        case duck::vt::Tree::LS_LENGTH_MS : return {"LS_LengthMS"}; break;
+
+        default: return {"Undefined"}; break;
+    }
 }
 
 duck::vt::Property duck::vt::ValueTree::getPropertyType(const juce::Identifier& property) {
     const auto prop = property.toString();
 
-    if (prop == "Power") return duck::vt::Property::POWER;
-    if (prop == "MaxAbsolutePower") return duck::vt::Property::MAX_ABSOLUTE_POWER;
-    if (prop == "Size") return duck::vt::Property::SIZE;
-    if (prop == "X") return duck::vt::Property::X;
-    if (prop == "Y") return duck::vt::Property::Y;
+    if (prop == "Power") return duck::vt::Property::CD_POWER;
+    if (prop == "MaxAbsolutePower") return duck::vt::Property::CD_MAX_ABSOLUTE_POWER;
+    if (prop == "Size") return duck::vt::Property::CD_SIZE;
+    if (prop == "X") return duck::vt::Property::CD_X;
+    if (prop == "Y") return duck::vt::Property::CD_Y;
+
+    if (prop == "LS_isMS") return duck::vt::Property::LS_IS_MS;
+    if (prop == "LS_RawNormalizedValue") return duck::vt::Property::LS_RAW_NORMALIZED_VALUE;
+    if (prop == "LS_MinValue") return duck::vt::Property::LS_MIN_VALUE;
+    if (prop == "LS_MaxValue") return duck::vt::Property::LS_MAX_VALUE;
 
     return duck::vt::Property::UNDEFINED;
 }
 
-juce::Identifier duck::vt::ValueTree::getIDFromType(const duck::vt::Tree& tree) {
-    switch (tree) {
-        case duck::vt::Tree::ROOT : return {"HentaiDuckRoot"}; break;
-        case duck::vt::Tree::CURVE_DATA : return {"CurveData"}; break;
-        case duck::vt::Tree::NORMALIZED_POINTS : return {"NormalizedPoints"}; break;
-        case duck::vt::Tree::POINT : return {"Point"}; break;
-        case duck::vt::Tree::COORDS : return {"Coords"}; break;
-        default: return {"Undefined"}; break;
-    }
-}
-
 juce::Identifier duck::vt::ValueTree::getIDFromType(const duck::vt::Property& property) {
     switch (property) {
-        case duck::vt::Property::POWER : return {"Power"}; break;
-        case duck::vt::Property::MAX_ABSOLUTE_POWER : return {"MaxAbsolutePower"}; break;
-        case duck::vt::Property::SIZE : return {"Size"}; break;
-        case duck::vt::Property::X : return {"X"}; break;
-        case duck::vt::Property::Y : return {"Y"}; break;
+        // CurveDisplay
+        case duck::vt::Property::CD_POWER : return {"Power"}; break;
+        case duck::vt::Property::CD_MAX_ABSOLUTE_POWER : return {"MaxAbsolutePower"}; break;
+        case duck::vt::Property::CD_SIZE : return {"Size"}; break;
+        case duck::vt::Property::CD_X : return {"X"}; break;
+        case duck::vt::Property::CD_Y : return {"Y"}; break;
+        
+        // lengthMs
+        case duck::vt::Property::LS_IS_MS : return {"LS_isMS"}; break;
+        case duck::vt::Property::LS_RAW_NORMALIZED_VALUE : return {"LS_RawNormalizedValue"}; break;
+        case duck::vt::Property::LS_MIN_VALUE : return {"LS_MinValue"}; break;
+        case duck::vt::Property::LS_MAX_VALUE : return {"LS_MaxValue"}; break;
+
         default: return {"Undefined"}; break;
     }
 }
@@ -53,8 +73,8 @@ duck::vt::ValueTree::ValueTree() {
 void duck::vt::ValueTree::create() {
     // create new one
     vtRoot = juce::ValueTree{getIDFromType(duck::vt::Tree::ROOT)};
-    juce::ValueTree curve{getIDFromType(duck::vt::Tree::CURVE_DATA)};
-    juce::ValueTree points{getIDFromType(duck::vt::Tree::NORMALIZED_POINTS)};
+    juce::ValueTree curve{getIDFromType(duck::vt::Tree::CD_CURVE_DATA)};
+    juce::ValueTree points{getIDFromType(duck::vt::Tree::CD_NORMALIZED_POINTS)};
     curve.appendChild(points, &undoManager);
     vtRoot.appendChild(curve, &undoManager);
 
@@ -82,17 +102,17 @@ void duck::vt::ValueTree::addPoint(const juce::Point<float>& coords, const float
     using tree = duck::vt::Tree;
     using prop = duck::vt::Property;
 
-    auto curve = vtRoot.getOrCreateChildWithName(getIDFromType(tree::CURVE_DATA), &undoManager);
-    auto points = curve.getOrCreateChildWithName(getIDFromType(tree::NORMALIZED_POINTS), &undoManager);
+    auto curve = vtRoot.getOrCreateChildWithName(getIDFromType(tree::CD_CURVE_DATA), &undoManager);
+    auto points = curve.getOrCreateChildWithName(getIDFromType(tree::CD_NORMALIZED_POINTS), &undoManager);
     if (!points.isValid()) return;
-    juce::ValueTree point{getIDFromType(tree::POINT)};
-    juce::ValueTree xy{getIDFromType(tree::COORDS)};
+    juce::ValueTree point{getIDFromType(tree::CD_POINT)};
+    juce::ValueTree xy{getIDFromType(tree::CD_COORDS)};
 
-    xy.setProperty(getIDFromType(prop::X), {double(coords.x)}, &undoManager);
-    xy.setProperty(getIDFromType(prop::Y), {double(coords.y)}, &undoManager);
-    point.setProperty(getIDFromType(prop::POWER), {double(power)}, &undoManager);
-    point.setProperty(getIDFromType(prop::MAX_ABSOLUTE_POWER), {double(maxAbsPower)}, &undoManager);
-    point.setProperty(getIDFromType(prop::SIZE), {double(size)}, &undoManager);
+    xy.setProperty(getIDFromType(prop::CD_X), {double(coords.x)}, &undoManager);
+    xy.setProperty(getIDFromType(prop::CD_Y), {double(coords.y)}, &undoManager);
+    point.setProperty(getIDFromType(prop::CD_POWER), {double(power)}, &undoManager);
+    point.setProperty(getIDFromType(prop::CD_MAX_ABSOLUTE_POWER), {double(maxAbsPower)}, &undoManager);
+    point.setProperty(getIDFromType(prop::CD_SIZE), {double(size)}, &undoManager);
 
     point.appendChild(xy, &undoManager);
     points.appendChild(point, &undoManager);

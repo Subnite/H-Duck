@@ -1,5 +1,6 @@
 #include "Curve.h"
 #include "Utils.h"
+#include "ValueTreeManager.h"
 #include <algorithm>
 
 
@@ -305,7 +306,7 @@ void duck::curve::CurveDisplay::valueTreePropertyChanged(juce::ValueTree& treeWh
     auto treeType = duck::vt::ValueTree::getTreeType(treeWhosePropertyHasChanged);
 
     switch (treeType) {
-        case duck::vt::Tree::POINT:
+        case duck::vt::Tree::CD_POINT:
             changePoint(treeWhosePropertyHasChanged, property);
             break;
         default:
@@ -320,7 +321,7 @@ void duck::curve::CurveDisplay::changePoint(juce::ValueTree& treeWhosePropertyHa
     
     if (index < curvePointsNormalized.size()){    
         switch (type) {
-            case duck::vt::Property::MAX_ABSOLUTE_POWER:
+            case duck::vt::Property::CD_MAX_ABSOLUTE_POWER:
                 curvePointsNormalized[index].maxAbsPower = val;
                 break;
             default:
@@ -332,8 +333,8 @@ void duck::curve::CurveDisplay::changePoint(juce::ValueTree& treeWhosePropertyHa
 
 std::vector<duck::curve::Point<float>> duck::curve::CurveDisplay::getTreeNormalizedPoints(const duck::vt::ValueTree& vTree) {
     const auto vtRoot = vTree.getRoot();
-    const auto curve = vtRoot.getChildWithName("CurveData");
-    const auto points = curve.getChildWithName("NormalizedPoints");
+    const auto curve = vtRoot.getChildWithName(duck::vt::ValueTree::getIDFromType(duck::vt::Tree::CD_CURVE_DATA));
+    const auto points = curve.getChildWithName(duck::vt::ValueTree::getIDFromType(duck::vt::Tree::CD_NORMALIZED_POINTS));
     const auto amtPoints = points.getNumChildren();
 
     std::vector<duck::curve::Point<float>> vec{};
@@ -341,14 +342,20 @@ std::vector<duck::curve::Point<float>> duck::curve::CurveDisplay::getTreeNormali
 
     vec.reserve(amtPoints);
     // vec.resize(amtPoints);
+    const auto coordsID = duck::vt::ValueTree::getIDFromType(duck::vt::Tree::CD_COORDS);
+    const auto xID = duck::vt::ValueTree::getIDFromType(duck::vt::Property::CD_X);
+    const auto yID = duck::vt::ValueTree::getIDFromType(duck::vt::Property::CD_Y);
+    const auto sizeID = duck::vt::ValueTree::getIDFromType(duck::vt::Property::CD_SIZE);
+    const auto powerID = duck::vt::ValueTree::getIDFromType(duck::vt::Property::CD_POWER);
+    const auto maxAbsPowerID = duck::vt::ValueTree::getIDFromType(duck::vt::Property::CD_MAX_ABSOLUTE_POWER);
 
     for (size_t i = 0; i < amtPoints; i++) {
         const auto p = points.getChild(i);
-        const auto coords = p.getChildWithName("Coords");
-        auto duckP = duck::curve::Point<float>(coords.getProperty("X"), coords.getProperty("Y"));
-        duckP.size = p.getProperty("Size");
-        duckP.power = p.getProperty("Power");
-        duckP.maxAbsPower = p.getProperty("MaxAbsolutePower");
+        const auto coords = p.getChildWithName(coordsID);
+        auto duckP = duck::curve::Point<float>(coords.getProperty(xID), coords.getProperty(yID));
+        duckP.size = p.getProperty(sizeID);
+        duckP.power = p.getProperty(powerID);
+        duckP.maxAbsPower = p.getProperty(maxAbsPowerID);
         vec.push_back(duckP);
  //       vec[i] = duckP;
     }
@@ -366,23 +373,23 @@ void duck::curve::CurveDisplay::updateTree() const {
     auto undoManager = vTree.getUndoManager();
 
 
-    juce::ValueTree cd {vt::getIDFromType(t::CURVE_DATA)};
-    juce::ValueTree np {vt::getIDFromType(t::NORMALIZED_POINTS)};
+    juce::ValueTree cd {vt::getIDFromType(t::CD_CURVE_DATA)};
+    juce::ValueTree np {vt::getIDFromType(t::CD_NORMALIZED_POINTS)};
     
     for (const auto& point : curvePointsNormalized) {
-        juce::ValueTree treePoint{vt::getIDFromType(t::POINT)};
-        treePoint.setProperty(vt::getIDFromType(p::POWER), {point.power}, undoManager);
-        treePoint.setProperty(vt::getIDFromType(p::MAX_ABSOLUTE_POWER), {point.maxAbsPower}, undoManager);
-        treePoint.setProperty(vt::getIDFromType(p::SIZE), {point.size}, undoManager);
+        juce::ValueTree treePoint{vt::getIDFromType(t::CD_POINT)};
+        treePoint.setProperty(vt::getIDFromType(p::CD_POWER), {point.power}, undoManager);
+        treePoint.setProperty(vt::getIDFromType(p::CD_MAX_ABSOLUTE_POWER), {point.maxAbsPower}, undoManager);
+        treePoint.setProperty(vt::getIDFromType(p::CD_SIZE), {point.size}, undoManager);
         
-        juce::ValueTree coords{vt::getIDFromType(t::COORDS)};
-        coords.setProperty(vt::getIDFromType(p::X), {point.coords.x}, undoManager);
-        coords.setProperty(vt::getIDFromType(p::Y), {point.coords.y}, undoManager);
+        juce::ValueTree coords{vt::getIDFromType(t::CD_COORDS)};
+        coords.setProperty(vt::getIDFromType(p::CD_X), {point.coords.x}, undoManager);
+        coords.setProperty(vt::getIDFromType(p::CD_Y), {point.coords.y}, undoManager);
 
         treePoint.appendChild(coords, undoManager);
         np.appendChild(treePoint, undoManager);
     }
 
     cd.appendChild(np, undoManager);
-    vTree.setChild(t::CURVE_DATA, cd);
+    vTree.setChild(t::CD_CURVE_DATA, cd);
 }
