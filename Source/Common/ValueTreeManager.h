@@ -29,6 +29,7 @@ enum class Property {
     // Length Slider
     LS_IS_MS,
     LS_RAW_NORMALIZED_VALUE,
+    LS_DISPLAY_VALUE,
     LS_MIN_VALUE,
     LS_MAX_VALUE,
 

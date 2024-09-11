@@ -26,15 +26,17 @@ HentaiDuckProcessor::HentaiDuckProcessor()
                        )
 #endif
 {
-    resizeCurve(getSampleRate()/2);
+    // resizeCurve(getSampleRate()/2);
     if (!vTree.isValid()) vTree.create();
-    updateCurveValues(duck::curve::CurveDisplay::getTreeNormalizedPoints(vTree));
+    updateCurveLength(subnite::Slider<double>::getLengthMsFromTree(vTree));
+    // updateCurveValues(duck::curve::CurveDisplay::getTreeNormalizedPoints(vTree));
 }
 
 HentaiDuckProcessor::~HentaiDuckProcessor()
 {}
 
 void HentaiDuckProcessor::resizeCurve(size_t newSize){
+    std::lock_guard<std::mutex> lock{curveGuard};
     curveMultiplier = std::vector<float>();
     curveMultiplier.reserve(newSize);
     curveMultiplier.resize(newSize);
@@ -42,6 +44,14 @@ void HentaiDuckProcessor::resizeCurve(size_t newSize){
 
     noteStartPositions.reserve(50);
     noteStartPositions.resize(50);
+
+    if (newSize > 0) currentCurveIndex = newSize-1; 
+}
+
+void HentaiDuckProcessor::updateCurveLength(const double& ms) {
+    auto samples = static_cast<size_t>(getSampleRate() * (ms/1000));
+    resizeCurve(samples);
+    updateCurveValues(duck::curve::CurveDisplay::getTreeNormalizedPoints(vTree));
 }
 
 void HentaiDuckProcessor::applyCurve(juce::AudioBuffer<float> &buffer) {
@@ -82,7 +92,10 @@ void HentaiDuckProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     resizeCurve(sampleRate/2);
-    if (vTree.isValid()) updateCurveValues(duck::curve::CurveDisplay::getTreeNormalizedPoints(vTree));
+    if (vTree.isValid()){
+        updateCurveLength(subnite::Slider<double>::getLengthMsFromTree(vTree));
+        // updateCurveValues(duck::curve::CurveDisplay::getTreeNormalizedPoints(vTree)); 
+    } 
 }
 
 void HentaiDuckProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -246,7 +259,8 @@ void HentaiDuckProcessor::setStateInformation (const void* data, int sizeInBytes
     
     vTree.copyFrom(data, sizeInBytes);
     if (!vTree.isValid()) vTree.create();
-    updateCurveValues(duck::curve::CurveDisplay::getTreeNormalizedPoints(vTree));
+    updateCurveLength(subnite::Slider<double>::getLengthMsFromTree(vTree));
+    // updateCurveValues(duck::curve::CurveDisplay::getTreeNormalizedPoints(vTree));
     // vTree.createXML("C:/Dev/Juce Projects/HentaiDuck/setStateOutputTree.xml");
 }
 

@@ -59,12 +59,13 @@ public:
 
     //==============================================================================
     void updateCurveValues(const std::vector<duck::curve::Point<float>>& normalizedPoints);
+    void updateCurveLength(const double& ms);
     duck::vt::ValueTree vTree{};
 private:
     std::vector<float> curveMultiplier; // list of multiplier for the curve
     std::mutex curveGuard; // save us from threads (each access of curve multipler)
     int currentCurveIndex = 0; // last read multiplier index
-    float finalMultiplier = 1.0f;
+    // float finalMultiplier = 1.0f;
     size_t amtTriggers = 0;
 
     std::vector<size_t> noteStartPositions;

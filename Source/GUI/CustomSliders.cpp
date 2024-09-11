@@ -15,7 +15,7 @@ subnite::Slider<T>::Slider(T minValue, T maxValue, T defaultValue, duck::vt::Val
     T range = maxValue - minValue;
     T v = defaultValue - minValue;
     normalizedRawValue = v / static_cast<double>(range);
-    updateDisplayedValueChecked();
+    updateDisplayedValueChecked(); // in case getFromValueTree fails
 
     getFromValueTree();
 }
@@ -24,7 +24,6 @@ template<typename T>
 subnite::Slider<T>::~Slider(){
     // maybe make sure that the mouse is normal
     setMouseCursor(juce::MouseCursor::NormalCursor);
-
     updateValueTree();
 }
 
@@ -36,6 +35,8 @@ void subnite::Slider<T>::updateDisplayedValueChecked() {
     const T newValue = normalizedToDisplayed(normalizedRawValue);
     jassert(newValue >= minValue && newValue <= maxValue); // Value should be between [min : max] inclusive. The normalizedToDisplayed function did not do this
     displayedValue = std::clamp(newValue, minValue, maxValue);
+
+    onValueChanged(displayedValue);
 }
 
 
@@ -62,6 +63,7 @@ void subnite::Slider<T>::setValue(T newValue) {
     displayedValue = newValue;
     
     normalizedRawValue = (newValue-minValue) / static_cast<double>(maxValue - minValue);
+    onValueChanged(displayedValue);
 }
 
 template <typename T>
@@ -83,6 +85,7 @@ void subnite::Slider<T>::getFromValueTree() {
     const auto minValueID = vt::getIDFromType(prop::LS_MIN_VALUE);
     const auto maxValueID = vt::getIDFromType(prop::LS_MAX_VALUE);
     const auto isMsID = vt::getIDFromType(prop::LS_IS_MS);
+    const auto displayValueID = vt::getIDFromType(prop::LS_DISPLAY_VALUE);
 
     auto slider = vTree->getRoot().getChildWithName(sliderID);
     if (!slider.isValid()) return; // didn't exist or wasn't child of root
@@ -91,13 +94,16 @@ void subnite::Slider<T>::getFromValueTree() {
     auto min = static_cast<double>(slider.getProperty(minValueID));
     auto max = static_cast<double>(slider.getProperty(maxValueID));
     auto isMs = static_cast<bool>(slider.getProperty(isMsID));
+    auto displayVal = static_cast<double>(slider.getProperty(displayValueID));
+
     
     normalizedRawValue = raw;
     minValue = min;
     maxValue = max;
-    // isMS is not accounted yet.
+    displayedValue = displayVal;
+    isMS = isMs;
     
-    updateDisplayedValueChecked();
+    // updateDisplayedValueChecked(); // since we're saving the display value now too.
 }
 
 template<typename T>
@@ -113,15 +119,26 @@ void subnite::Slider<T>::updateValueTree() {
     const auto minValueID = vt::getIDFromType(prop::LS_MIN_VALUE);
     const auto maxValueID = vt::getIDFromType(prop::LS_MAX_VALUE);
     const auto isMsID = vt::getIDFromType(prop::LS_IS_MS);
+    const auto displayValueID = vt::getIDFromType(prop::LS_DISPLAY_VALUE);
     
     juce::ValueTree slider{sliderID};
 
     slider.setProperty(rawID, normalizedRawValue, nullptr);
     slider.setProperty(minValueID, minValue, nullptr);
     slider.setProperty(maxValueID, maxValue, nullptr);
-    slider.setProperty(isMsID, true, nullptr); // this will be a variable later
+    slider.setProperty(isMsID, isMS, nullptr); // this will be a variable later
+    slider.setProperty(displayValueID, displayedValue, nullptr);
     
     vTree->setChild(tree::LS_LENGTH_MS, slider);
+}
+
+template <typename T>
+T subnite::Slider<T>::getLengthMsFromTree(const duck::vt::ValueTree &tree) {
+    const auto lengthTree = tree.getRoot().getChildWithName(duck::vt::ValueTree::getIDFromType(duck::vt::Tree::LS_LENGTH_MS));
+
+    double lengthMS = lengthTree.getProperty(duck::vt::ValueTree::getIDFromType(duck::vt::Property::LS_DISPLAY_VALUE)); // RETURN DISPLAY VALUE!!!
+    
+    return static_cast<T>(lengthMS);
 }
 
 // ============= Visuals   =================
@@ -202,6 +219,11 @@ void subnite::Slider<T>::mouseDrag(const juce::MouseEvent& e) {
         lastDragOffset = offset;
         updateDisplayedValueChecked();
         repaint();
+
+        if (offset.getDistanceSquaredFrom({0,0}) > 50) {
+            Desktop::getInstance().getMainMouseSource().setScreenPosition(e.getMouseDownScreenPosition().toFloat()); // sometimes reset so it remains smooth
+            lastDragOffset.setXY(0,0);
+        }
     }
 }
 

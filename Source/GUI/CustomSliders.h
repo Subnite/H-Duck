@@ -20,11 +20,15 @@ public:
     // you convert the raw normalized value into your wished value, so things like Hz can be customized
     std::function<T(const double& normalizedValue)> normalizedToDisplayed = [this](const double& normalizedValue){
         return static_cast<T>(normalizedValue) * (maxValue - minValue) + minValue;
-    };     
+    };
+
+    std::function<void(const T& changedValue)> onValueChanged = [](const T& c){};
 
     void setValuePrefix(std::string prefix);
     void setValuePostfix(std::string postfix);
     void setValue(T newValue); // updates the Display value and also raw normalized.
+
+    static T getLengthMsFromTree(const duck::vt::ValueTree& tree);
 
     std::string getValueString() const; // returns the display value as a string with pre and postfix
     double getValueAngle(const double& minAngle, const double& maxAngle) const; // maps the normalizedValue to the range provided.
@@ -35,6 +39,7 @@ private:
     T displayedValue; // between min and max, used for displayed values
     T minValue, maxValue, defaultValue;
     bool displayValueOnHover = true;
+    bool isMS = true;
 
     duck::vt::ValueTree* vTree = nullptr;
 
