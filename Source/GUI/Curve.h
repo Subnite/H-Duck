@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include <vector>
-#include "ValueTreeManager.h"
+#include "DuckValueTree.h"
 
 namespace duck::curve {
 

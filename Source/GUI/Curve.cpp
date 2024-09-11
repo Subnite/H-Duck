@@ -303,10 +303,10 @@ float duck::curve::CurveDisplay::getCurveAtNormalized(float normalizedX, const s
 
 
 void duck::curve::CurveDisplay::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier &property) {
-    auto treeType = duck::vt::ValueTree::getTreeType(treeWhosePropertyHasChanged);
+    auto treeType = subnite::vt::getTreeType(treeWhosePropertyHasChanged);
 
     switch (treeType) {
-        case duck::vt::Tree::CD_POINT:
+        case subnite::vt::Tree::CD_POINT:
             changePoint(treeWhosePropertyHasChanged, property);
             break;
         default:
@@ -317,11 +317,11 @@ void duck::curve::CurveDisplay::valueTreePropertyChanged(juce::ValueTree& treeWh
 void duck::curve::CurveDisplay::changePoint(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) {
     const auto index = treeWhosePropertyHasChanged.getParent().indexOf(treeWhosePropertyHasChanged);
     auto val = treeWhosePropertyHasChanged.getProperty(property);
-    auto type = duck::vt::ValueTree::getPropertyType(property);
+    auto type = subnite::vt::getPropertyType(property);
     
     if (index < curvePointsNormalized.size()){    
         switch (type) {
-            case duck::vt::Property::CD_MAX_ABSOLUTE_POWER:
+            case subnite::vt::Property::CD_MAX_ABSOLUTE_POWER:
                 curvePointsNormalized[index].maxAbsPower = val;
                 break;
             default:
@@ -333,8 +333,8 @@ void duck::curve::CurveDisplay::changePoint(juce::ValueTree& treeWhosePropertyHa
 
 std::vector<duck::curve::Point<float>> duck::curve::CurveDisplay::getTreeNormalizedPoints(const duck::vt::ValueTree& vTree) {
     const auto vtRoot = vTree.getRoot();
-    const auto curve = vtRoot.getChildWithName(duck::vt::ValueTree::getIDFromType(duck::vt::Tree::CD_CURVE_DATA));
-    const auto points = curve.getChildWithName(duck::vt::ValueTree::getIDFromType(duck::vt::Tree::CD_NORMALIZED_POINTS));
+    const auto curve = vtRoot.getChildWithName(subnite::vt::getIDFromType(subnite::vt::Tree::CD_CURVE_DATA));
+    const auto points = curve.getChildWithName(subnite::vt::getIDFromType(subnite::vt::Tree::CD_NORMALIZED_POINTS));
     const auto amtPoints = points.getNumChildren();
 
     std::vector<duck::curve::Point<float>> vec{};
@@ -342,12 +342,12 @@ std::vector<duck::curve::Point<float>> duck::curve::CurveDisplay::getTreeNormali
 
     vec.reserve(amtPoints);
     // vec.resize(amtPoints);
-    const auto coordsID = duck::vt::ValueTree::getIDFromType(duck::vt::Tree::CD_COORDS);
-    const auto xID = duck::vt::ValueTree::getIDFromType(duck::vt::Property::CD_X);
-    const auto yID = duck::vt::ValueTree::getIDFromType(duck::vt::Property::CD_Y);
-    const auto sizeID = duck::vt::ValueTree::getIDFromType(duck::vt::Property::CD_SIZE);
-    const auto powerID = duck::vt::ValueTree::getIDFromType(duck::vt::Property::CD_POWER);
-    const auto maxAbsPowerID = duck::vt::ValueTree::getIDFromType(duck::vt::Property::CD_MAX_ABSOLUTE_POWER);
+    const auto coordsID = subnite::vt::getIDFromType(subnite::vt::Tree::CD_COORDS);
+    const auto xID = subnite::vt::getIDFromType(subnite::vt::Property::CD_X);
+    const auto yID = subnite::vt::getIDFromType(subnite::vt::Property::CD_Y);
+    const auto sizeID = subnite::vt::getIDFromType(subnite::vt::Property::CD_SIZE);
+    const auto powerID = subnite::vt::getIDFromType(subnite::vt::Property::CD_POWER);
+    const auto maxAbsPowerID = subnite::vt::getIDFromType(subnite::vt::Property::CD_MAX_ABSOLUTE_POWER);
 
     for (size_t i = 0; i < amtPoints; i++) {
         const auto p = points.getChild(i);
@@ -365,26 +365,26 @@ std::vector<duck::curve::Point<float>> duck::curve::CurveDisplay::getTreeNormali
 
 void duck::curve::CurveDisplay::updateTree() const {
     using vt = duck::vt::ValueTree;
-    using t = duck::vt::Tree;
-    using p = duck::vt::Property;
+    using t = subnite::vt::Tree;
+    using p = subnite::vt::Property;
 
     if (!vTree.isValid()) return;
 
     auto undoManager = vTree.getUndoManager();
 
 
-    juce::ValueTree cd {vt::getIDFromType(t::CD_CURVE_DATA)};
-    juce::ValueTree np {vt::getIDFromType(t::CD_NORMALIZED_POINTS)};
+    juce::ValueTree cd {subnite::vt::getIDFromType(t::CD_CURVE_DATA)};
+    juce::ValueTree np {subnite::vt::getIDFromType(t::CD_NORMALIZED_POINTS)};
     
     for (const auto& point : curvePointsNormalized) {
-        juce::ValueTree treePoint{vt::getIDFromType(t::CD_POINT)};
-        treePoint.setProperty(vt::getIDFromType(p::CD_POWER), {point.power}, undoManager);
-        treePoint.setProperty(vt::getIDFromType(p::CD_MAX_ABSOLUTE_POWER), {point.maxAbsPower}, undoManager);
-        treePoint.setProperty(vt::getIDFromType(p::CD_SIZE), {point.size}, undoManager);
+        juce::ValueTree treePoint{subnite::vt::getIDFromType(t::CD_POINT)};
+        treePoint.setProperty(subnite::vt::getIDFromType(p::CD_POWER), {point.power}, undoManager);
+        treePoint.setProperty(subnite::vt::getIDFromType(p::CD_MAX_ABSOLUTE_POWER), {point.maxAbsPower}, undoManager);
+        treePoint.setProperty(subnite::vt::getIDFromType(p::CD_SIZE), {point.size}, undoManager);
         
-        juce::ValueTree coords{vt::getIDFromType(t::CD_COORDS)};
-        coords.setProperty(vt::getIDFromType(p::CD_X), {point.coords.x}, undoManager);
-        coords.setProperty(vt::getIDFromType(p::CD_Y), {point.coords.y}, undoManager);
+        juce::ValueTree coords{subnite::vt::getIDFromType(t::CD_COORDS)};
+        coords.setProperty(subnite::vt::getIDFromType(p::CD_X), {point.coords.x}, undoManager);
+        coords.setProperty(subnite::vt::getIDFromType(p::CD_Y), {point.coords.y}, undoManager);
 
         treePoint.appendChild(coords, undoManager);
         np.appendChild(treePoint, undoManager);

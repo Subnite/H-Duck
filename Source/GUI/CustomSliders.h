@@ -2,7 +2,7 @@
 #include <JuceHeader.h>
 #include <functional>
 #include <string>
-#include "ValueTreeManager.h"
+#include "DuckValueTree.h"
 
 namespace subnite {
 

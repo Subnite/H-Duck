@@ -10,7 +10,7 @@
 #include <JuceHeader.h>
 #include <mutex>
 #include "Curve.h"
-#include "ValueTreeManager.h"
+#include "DuckValueTree.h"
 
 //==============================================================================
 

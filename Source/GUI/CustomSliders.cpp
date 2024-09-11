@@ -1,5 +1,4 @@
 #include "CustomSliders.h"
-#include "ValueTreeManager.h"
 #include <algorithm>
 
 
@@ -76,16 +75,16 @@ template<typename T>
 void subnite::Slider<T>::getFromValueTree() {
     if (vTree == nullptr) return;
 
-    using vt = duck::vt::ValueTree;
-    using tree = duck::vt::Tree;
-    using prop = duck::vt::Property;
+    // using vt = duck::vt::ValueTree;
+    using tree = subnite::vt::Tree;
+    using prop = subnite::vt::Property;
 
-    const auto sliderID = vt::getIDFromType(tree::LS_LENGTH_MS);
-    const auto rawID = vt::getIDFromType(prop::LS_RAW_NORMALIZED_VALUE);
-    const auto minValueID = vt::getIDFromType(prop::LS_MIN_VALUE);
-    const auto maxValueID = vt::getIDFromType(prop::LS_MAX_VALUE);
-    const auto isMsID = vt::getIDFromType(prop::LS_IS_MS);
-    const auto displayValueID = vt::getIDFromType(prop::LS_DISPLAY_VALUE);
+    const auto sliderID = subnite::vt::getIDFromType(tree::LS_LENGTH_MS);
+    const auto rawID = subnite::vt::getIDFromType(prop::LS_RAW_NORMALIZED_VALUE);
+    const auto minValueID = subnite::vt::getIDFromType(prop::LS_MIN_VALUE);
+    const auto maxValueID = subnite::vt::getIDFromType(prop::LS_MAX_VALUE);
+    const auto isMsID = subnite::vt::getIDFromType(prop::LS_IS_MS);
+    const auto displayValueID = subnite::vt::getIDFromType(prop::LS_DISPLAY_VALUE);
 
     auto slider = vTree->getRoot().getChildWithName(sliderID);
     if (!slider.isValid()) return; // didn't exist or wasn't child of root
@@ -103,23 +102,22 @@ void subnite::Slider<T>::getFromValueTree() {
     displayedValue = displayVal;
     isMS = isMs;
     
-    // updateDisplayedValueChecked(); // since we're saving the display value now too.
+    updateDisplayedValueChecked(); // we're saving the display value too, but this is still useful for initialization.
 }
 
 template<typename T>
 void subnite::Slider<T>::updateValueTree() {
     if (vTree == nullptr) return;
 
-    using vt = duck::vt::ValueTree;
-    using tree = duck::vt::Tree;
-    using prop = duck::vt::Property;
+    using tree = subnite::vt::Tree;
+    using prop = subnite::vt::Property;
 
-    const auto sliderID = vt::getIDFromType(tree::LS_LENGTH_MS);
-    const auto rawID = vt::getIDFromType(prop::LS_RAW_NORMALIZED_VALUE);
-    const auto minValueID = vt::getIDFromType(prop::LS_MIN_VALUE);
-    const auto maxValueID = vt::getIDFromType(prop::LS_MAX_VALUE);
-    const auto isMsID = vt::getIDFromType(prop::LS_IS_MS);
-    const auto displayValueID = vt::getIDFromType(prop::LS_DISPLAY_VALUE);
+    const auto sliderID = subnite::vt::getIDFromType(tree::LS_LENGTH_MS);
+    const auto rawID = subnite::vt::getIDFromType(prop::LS_RAW_NORMALIZED_VALUE);
+    const auto minValueID = subnite::vt::getIDFromType(prop::LS_MIN_VALUE);
+    const auto maxValueID = subnite::vt::getIDFromType(prop::LS_MAX_VALUE);
+    const auto isMsID = subnite::vt::getIDFromType(prop::LS_IS_MS);
+    const auto displayValueID = subnite::vt::getIDFromType(prop::LS_DISPLAY_VALUE);
     
     juce::ValueTree slider{sliderID};
 
@@ -134,9 +132,9 @@ void subnite::Slider<T>::updateValueTree() {
 
 template <typename T>
 T subnite::Slider<T>::getLengthMsFromTree(const duck::vt::ValueTree &tree) {
-    const auto lengthTree = tree.getRoot().getChildWithName(duck::vt::ValueTree::getIDFromType(duck::vt::Tree::LS_LENGTH_MS));
+    const auto lengthTree = tree.getRoot().getChildWithName(subnite::vt::getIDFromType(subnite::vt::Tree::LS_LENGTH_MS));
 
-    double lengthMS = lengthTree.getProperty(duck::vt::ValueTree::getIDFromType(duck::vt::Property::LS_DISPLAY_VALUE)); // RETURN DISPLAY VALUE!!!
+    double lengthMS = lengthTree.getProperty(subnite::vt::getIDFromType(subnite::vt::Property::LS_DISPLAY_VALUE)); // RETURN DISPLAY VALUE!!!
     
     return static_cast<T>(lengthMS);
 }
