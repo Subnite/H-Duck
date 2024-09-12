@@ -22,7 +22,6 @@ message("****Added juce plugin")
 # add your source files here
 target_sources(${PLUGIN_PROJECT_NAME}
     PRIVATE
-        Common/ValueTreeManager.cpp
         GUI/Curve.cpp
         GUI/CustomSliders.cpp
         PluginEditor.cpp
