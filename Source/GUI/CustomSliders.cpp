@@ -76,7 +76,6 @@ template<typename T>
 void subnite::Slider<T>::getFromValueTree() {
     if (vTree == nullptr) return;
 
-    // using vt = duck::vt::ValueTree;
     using prop = Property;
     using id = juce::Identifier;
 

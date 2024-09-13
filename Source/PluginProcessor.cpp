@@ -26,10 +26,8 @@ HentaiDuckProcessor::HentaiDuckProcessor()
                        )
 #endif
 {
-    // resizeCurve(getSampleRate()/2);
     if (!vTree.isValid()) vTree.create();
     updateCurveLength(subnite::Slider<double>::getLengthMsFromTree(vTree));
-    // updateCurveValues(duck::curve::CurveDisplay::getTreeNormalizedPoints(vTree));
 }
 
 HentaiDuckProcessor::~HentaiDuckProcessor()
@@ -94,7 +92,6 @@ void HentaiDuckProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     resizeCurve(sampleRate/2);
     if (vTree.isValid()){
         updateCurveLength(subnite::Slider<double>::getLengthMsFromTree(vTree));
-        // updateCurveValues(duck::curve::CurveDisplay::getTreeNormalizedPoints(vTree)); 
     } 
 }
 
@@ -241,8 +238,6 @@ void HentaiDuckProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     juce::ignoreUnused(destData);
     // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
     
     juce::MemoryOutputStream stream(destData, true);
     if (vTree.isValid()){
@@ -254,13 +249,11 @@ void HentaiDuckProcessor::getStateInformation (juce::MemoryBlock& destData)
 void HentaiDuckProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     juce::ignoreUnused(data, sizeInBytes);
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    // You should use this method to restore your parameters from this memory block, whose contents will have been created by the getStateInformation() call.
     
     vTree.copyFrom(data, sizeInBytes);
     if (!vTree.isValid()) vTree.create();
     updateCurveLength(subnite::Slider<double>::getLengthMsFromTree(vTree));
-    // updateCurveValues(duck::curve::CurveDisplay::getTreeNormalizedPoints(vTree));
     // vTree.createXML("C:/Dev/Juce Projects/HentaiDuck/setStateOutputTree.xml");
 }
 

@@ -1,7 +1,6 @@
 #include "Curve.h"
 #include "DuckValueTree.h"
 #include "Utils.h"
-#include "ValueTreeManager.h"
 #include <algorithm>
 
 
@@ -304,7 +303,6 @@ float duck::curve::CurveDisplay::getCurveAtNormalized(float normalizedX, const s
 
 
 void duck::curve::CurveDisplay::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier &property) {
-    using id = juce::Identifier;
     auto treeType = vTree.getTypeFromID(treeWhosePropertyHasChanged.getType()).value_or(Property::COUNT);
 
     switch (treeType) {
@@ -368,7 +366,6 @@ std::vector<duck::curve::Point<float>> duck::curve::CurveDisplay::getTreeNormali
 }
 
 void duck::curve::CurveDisplay::updateTree() const {
-    // using vt = duck::vt::ValueTree;
     using p = Property;
     using id = juce::Identifier;
 
