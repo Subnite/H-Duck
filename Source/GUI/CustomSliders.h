@@ -40,12 +40,16 @@ public:
 
     // sets up the valuetree, and updates this component from its values.
     void setValueTree(subnite::vt::ValueTreeBase* parentTree, juce::Identifier uniqueSliderTreeID, juce::Identifier rawNormalizedValueID, juce::Identifier displayValueID, juce::Identifier minValueID, juce::Identifier maxValueID, juce::Identifier isMsID);
+
+    // optionals
+
+    bool displayValueOnHover = true;
+    bool updateTreeOnDrag = true;
+    bool isMS = true;
 private:
     double normalizedRawValue; // always from 0 to 1, used for value calculations
     T displayedValue; // between min and max, used for displayed values
     T minValue, maxValue, defaultValue;
-    bool displayValueOnHover = true;
-    bool isMS = true;
 
     subnite::vt::ValueTreeBase* vTree = nullptr;
     juce::Identifier sliderTreeUniqueID{"undefined"};
@@ -57,7 +61,7 @@ private:
     bool isHovering = false;
     juce::Point<int> lastDragOffset{0, 0};
 
-    void updateDisplayedValueChecked(); // updates the display value, and checks if normalizedToDisplayed is between min and max inclusive. Otherwise clamp it.
+    void updateDisplayedValueChecked(bool updateTree = true); // updates the display value, and checks if normalizedToDisplayed is between min and max inclusive. Otherwise clamp it.
 
     void paint(juce::Graphics &g) override;
 

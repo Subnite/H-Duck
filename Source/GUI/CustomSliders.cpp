@@ -13,9 +13,9 @@ subnite::Slider<T>::Slider(T minValue, T maxValue, T defaultValue)
     T range = maxValue - minValue;
     T v = defaultValue - minValue;
     normalizedRawValue = v / static_cast<double>(range);
-    updateDisplayedValueChecked(); // in case getFromValueTree fails
+    updateDisplayedValueChecked(true); // in case getFromValueTree fails
 
-    // getFromValueTree();
+    getFromValueTree();
 }
 
 template <typename T>
@@ -29,12 +29,12 @@ subnite::Slider<T>::~Slider(){
     updates the displayedValue from the normalizedRawValue, and clamping it between min and max. It's up to the user's normalizedToDisplayed function to make sure this doesn't need to be clamped.
 */
 template <typename T>
-void subnite::Slider<T>::updateDisplayedValueChecked() {
+void subnite::Slider<T>::updateDisplayedValueChecked(bool updateTree) {
     const T newValue = normalizedToDisplayed(normalizedRawValue);
     jassert(newValue >= minValue && newValue <= maxValue); // Value should be between [min : max] inclusive. The normalizedToDisplayed function did not do this
     displayedValue = std::clamp(newValue, minValue, maxValue);
 
-    onValueChanged(displayedValue);
+    if (updateTree) onValueChanged(displayedValue);
 }
 
 
@@ -89,7 +89,7 @@ void subnite::Slider<T>::getFromValueTree() {
     this->displayedValue = displayVal;
     this->isMS = isMs;
     
-    updateDisplayedValueChecked(); // we're saving the display value too, but this is still useful for initialization.
+    updateDisplayedValueChecked(true); // we're saving the display value too, but this is still useful for initialization.
 }
 
 template <typename T>
@@ -171,6 +171,7 @@ void subnite::Slider<T>::mouseUp(const juce::MouseEvent& e) {
     Desktop::getInstance().getMainMouseSource().setScreenPosition(e.getMouseDownScreenPosition().toFloat());
 
     updateValueTree();
+    if (!updateTreeOnDrag) onValueChanged(displayedValue);
 }
 
 template <typename T>
@@ -184,7 +185,7 @@ void subnite::Slider<T>::mouseDrag(const juce::MouseEvent& e) {
         normalizedRawValue = std::clamp(normalizedRawValue, 0.0, 1.0);
 
         lastDragOffset = offset;
-        updateDisplayedValueChecked();
+        updateDisplayedValueChecked(updateTreeOnDrag);
         repaint();
 
         if (offset.getDistanceSquaredFrom({0,0}) > 50) {

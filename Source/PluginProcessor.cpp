@@ -108,12 +108,14 @@ void HentaiDuckProcessor::updateLookahead(double ms) {
 
     if (lookaheadBuffer.size() > 0) {
 
-        if (samples + this->samplesPerBlock > lookaheadBuffer[0].capacity()){
+        if (samples > lookaheadBuffer[0].capacity()){
             // make new and bigger buffers.
+            // TODO: 
+            bool kanker = true;
         }
         // set size to match samples
         for (auto& buf : lookaheadBuffer) {
-            buf.setRelativeSize(this->samplesPerBlock + samples);
+            buf.setRelativeSize(samples);
         }
     }
 
@@ -139,12 +141,12 @@ void HentaiDuckProcessor::busSettingsChanged(size_t sampleRate, size_t samplesPe
     jassert(channels >= 1);
 
     // lookahead buffer setup
-    lookaheadBuffer.clear();
-    lookaheadBuffer.shrink_to_fit();
+    lookaheadBuffer = std::vector<RingBuffer<float>>();
     lookaheadBuffer.reserve(channels);
     for (int i = 0; i < channels; i++) {
         const auto latencyMs = vTree.isValid() ? getSliderMsFromTree<double>(vTree, Property::T_LOOKAHEAD_MS, Property::P_DISPLAY_VALUE) : 0.0;
         const auto maxLatencyMs = vTree.isValid() ? getSliderMsFromTree<double>(vTree, Property::T_LOOKAHEAD_MS, Property::P_MAX_VALUE) : 1000.0;
+
         const size_t size = sampleRate * (latencyMs/1000.0);
         auto newRing = RingBuffer<float>(sampleRate * (maxLatencyMs/1000.0)); // 10 safety padding, should actually just be the max amt of latency.
         newRing.setRelativeSize(size);

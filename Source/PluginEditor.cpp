@@ -140,6 +140,8 @@ void HentaiDuckEditor::setupLookaheadSlider()
         audioProcessor.updateLookahead(static_cast<double>(newVal));
     };
 
+    lookaheadSliderMs.updateTreeOnDrag = false;
+
     using prop = Property;
     auto &vTree = audioProcessor.vTree;
     lookaheadSliderMs.setValueTree(
