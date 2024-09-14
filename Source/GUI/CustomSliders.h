@@ -2,14 +2,19 @@
 #include <JuceHeader.h>
 #include <functional>
 #include <string>
-#include "DuckValueTree.h"
+#include "ValueTreeManager.h"
 
 namespace subnite {
 
+/*
+    `E_ID` has to be an enum type for the valuetree. If you don't plan on using
+    `setValueTree()` then this can just be a random enum class. Otherwise provide the same class
+    as the valuetree.
+*/
 template<typename T>
 class Slider : public juce::Component {
 public:
-    Slider(T minValue, T maxValue, T defaultValue, duck::vt::ValueTree* vTree);
+    Slider(T minValue, T maxValue, T defaultValue);
     ~Slider();
 
     // no prefix or postfix needed, just the value as a string. This is not the normalized value, but displayed.
@@ -28,12 +33,13 @@ public:
     void setValuePostfix(std::string postfix);
     void setValue(T newValue); // updates the Display value and also raw normalized.
 
-    static T getLengthMsFromTree(const duck::vt::ValueTree& tree);
-
     std::string getValueString() const; // returns the display value as a string with pre and postfix
     double getValueAngle(const double& minAngle, const double& maxAngle) const; // maps the normalizedValue to the range provided.
     void getFromValueTree(); // replaces the state of this class from values in the value tree.
     void updateValueTree(); // updates the valuetree if it exists
+
+    // sets up the valuetree, and updates this component from its values.
+    void setValueTree(subnite::vt::ValueTreeBase* parentTree, juce::Identifier uniqueSliderTreeID, juce::Identifier rawNormalizedValueID, juce::Identifier displayValueID, juce::Identifier minValueID, juce::Identifier maxValueID, juce::Identifier isMsID);
 private:
     double normalizedRawValue; // always from 0 to 1, used for value calculations
     T displayedValue; // between min and max, used for displayed values
@@ -41,26 +47,27 @@ private:
     bool displayValueOnHover = true;
     bool isMS = true;
 
-    duck::vt::ValueTree* vTree = nullptr;
+    subnite::vt::ValueTreeBase* vTree = nullptr;
+    juce::Identifier sliderTreeUniqueID{"undefined"};
+    juce::Identifier rawNormalizedValueID{"undefined"}, displayValueID{"undefined"}, minValueID{"undefined"},  maxValueID{"undefined"}, isMsID{"undefined"};
 
     std::string prefix = "";
     std::string postfix = "";
 
     bool isHovering = false;
-    juce::Point<int> lastDragOffset{0,0};
-    
+    juce::Point<int> lastDragOffset{0, 0};
+
     void updateDisplayedValueChecked(); // updates the display value, and checks if normalizedToDisplayed is between min and max inclusive. Otherwise clamp it.
-    
+
     void paint(juce::Graphics &g) override;
 
-    void mouseEnter(const juce::MouseEvent &event) override; // hover is true
-    void mouseExit(const juce::MouseEvent &event) override; // hover is false (unless drag?)
-    void mouseDown(const juce::MouseEvent &event) override; // hide mouse, right click type value
-    void mouseUp(const juce::MouseEvent &event) override; // normal mouse
-    void mouseDrag(const juce::MouseEvent &event) override; // update value
+    void mouseEnter(const juce::MouseEvent &event) override;       // hover is true
+    void mouseExit(const juce::MouseEvent &event) override;        // hover is false (unless drag?)
+    void mouseDown(const juce::MouseEvent &event) override;        // hide mouse, right click type value
+    void mouseUp(const juce::MouseEvent &event) override;          // normal mouse
+    void mouseDrag(const juce::MouseEvent &event) override;        // update value
     void mouseDoubleClick(const juce::MouseEvent &event) override; // reset to default
 
 }; // Slider class
-
 
 } // namespace

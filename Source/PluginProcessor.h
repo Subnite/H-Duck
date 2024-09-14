@@ -62,18 +62,22 @@ public:
     void updateCurveLength(const double& ms);
     duck::vt::ValueTree vTree{};
 private:
-    std::vector<float> curveMultiplier; // list of multiplier for the curve
-    std::mutex curveGuard; // save us from threads (each access of curve multipler)
-    int currentCurveIndex = 0; // last read multiplier index
-    // float finalMultiplier = 1.0f;
-    size_t amtTriggers = 0;
+  // list of multiplier for the curve
+  std::vector<float> curveMultiplier;
+  // save us from threads (each access of curve multiplier)
+  std::mutex curveGuard;
+  // last read multiplier index
+  int currentCurveIndex = 0;
+  size_t amtTriggers = 0;
 
-    std::vector<size_t> noteStartPositions;
+  std::vector<size_t> noteStartPositions;
 
-    void resizeCurve(size_t newSize);
+  void resizeCurve(size_t newSize);
 
-    // need length since it might be triggered more than once before it ends
-    void applyCurve(juce::AudioBuffer<float>& buffer); 
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HentaiDuckProcessor)
+  // need length since it might be triggered more than once before it ends
+  void applyCurve(juce::AudioBuffer<float> &buffer);
+
+  double getLengthMsFromTree(const duck::vt::ValueTree& tree) const;
+  //==============================================================================
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HentaiDuckProcessor)
 };

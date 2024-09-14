@@ -27,7 +27,7 @@ HentaiDuckProcessor::HentaiDuckProcessor()
 #endif
 {
     if (!vTree.isValid()) vTree.create();
-    updateCurveLength(subnite::Slider<double>::getLengthMsFromTree(vTree));
+    updateCurveLength(getLengthMsFromTree(vTree));
 }
 
 HentaiDuckProcessor::~HentaiDuckProcessor()
@@ -84,14 +84,29 @@ void HentaiDuckProcessor::updateCurveValues(const std::vector<duck::curve::Point
     }
 }
 
+double HentaiDuckProcessor::getLengthMsFromTree(const duck::vt::ValueTree& tree) const{
+    const auto sliderTree = tree.getRoot().getChildWithName(tree.getIDFromType(Property::LS_LENGTH_MS).value_or("undefined"));
+    double displayValueFromTree = sliderTree.getProperty(tree.getIDFromType(Property::LS_DISPLAY_VALUE).value_or("undefined")); // RETURN DISPLAY VALUE!!!
+    return static_cast<double>(displayValueFromTree);
+}
+
+
+
+
+
 //==============================================================================
+
+
+
+
+
 void HentaiDuckProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     resizeCurve(sampleRate/2);
     if (vTree.isValid()){
-        updateCurveLength(subnite::Slider<double>::getLengthMsFromTree(vTree));
+        updateCurveLength(getLengthMsFromTree(vTree));
     } 
 }
 
@@ -253,7 +268,7 @@ void HentaiDuckProcessor::setStateInformation (const void* data, int sizeInBytes
     
     vTree.copyFrom(data, sizeInBytes);
     if (!vTree.isValid()) vTree.create();
-    updateCurveLength(subnite::Slider<double>::getLengthMsFromTree(vTree));
+    updateCurveLength(getLengthMsFromTree(vTree));
     // vTree.createXML("C:/Dev/Juce Projects/HentaiDuck/setStateOutputTree.xml");
 }
 

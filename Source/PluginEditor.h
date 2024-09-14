@@ -36,6 +36,11 @@ private:
     
     duck::curve::CurveDisplay curveDisplay;
     subnite::Slider<float> lengthSliderMs;
+    subnite::Slider<float> lookaheadSliderMs;
+
+    void setupCurveDisplay();
+    void setupLengthSlider();
+    void setupLookaheadSlider();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HentaiDuckEditor)
 };

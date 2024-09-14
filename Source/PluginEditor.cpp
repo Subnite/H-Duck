@@ -12,7 +12,8 @@
 HentaiDuckEditor::HentaiDuckEditor(HentaiDuckProcessor& p)
     : AudioProcessorEditor(&p), audioProcessor(p),
     curveDisplay(audioProcessor.vTree),
-    lengthSliderMs(10.f, 2000.f, 50.f, &audioProcessor.vTree)
+    lengthSliderMs(10.f, 2000.f, 50.f),
+    lookaheadSliderMs(0.f, 50.f, 0.f)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -21,37 +22,15 @@ HentaiDuckEditor::HentaiDuckEditor(HentaiDuckProcessor& p)
     setResizable(true, true);
     setResizeLimits(400, 250, 1500, 1000);
 
-    // update curveDisplay settings
-
-    curveDisplay.onCurveUpdated = [this](){
-        audioProcessor.updateCurveValues(curveDisplay.getNormalizedPoints());
-    };
-
-    curveDisplay.onCurveUpdated(); // initial update
+    setupCurveDisplay();
+    setupLengthSlider();
+    setupLookaheadSlider();
     
-    // update lengthSliderMs settings
-    lengthSliderMs.setValuePrefix("Length: ");
-    lengthSliderMs.setValuePostfix(" ms");
-    lengthSliderMs.valueToString = [this](const float& val)->std::string{
-        float newVal = val;
-        if (val < 1000) {
-            lengthSliderMs.setValuePostfix(" ms");
-        }
-        else {
-            newVal /= 1000;
-            lengthSliderMs.setValuePostfix(" s");
-        }
-        return juce::String(newVal, 2, false).toStdString();
-    };
-    lengthSliderMs.onValueChanged = [this](const float& newVal){
-        audioProcessor.updateCurveLength(static_cast<double>(newVal));
-    };
-
-    lengthSliderMs.getFromValueTree();
 
     // make all visible
     addAndMakeVisible(&curveDisplay);
     addAndMakeVisible(&lengthSliderMs);
+    addAndMakeVisible(&lookaheadSliderMs);
 }
 
 HentaiDuckEditor::~HentaiDuckEditor()
@@ -87,6 +66,90 @@ void HentaiDuckEditor::resized()
     buttonsBounds.removeFromLeft(sectionPadding);
 
     curveDisplay.setBounds(paddedBounds);
-    lengthSliderMs.setBounds(buttonsBounds);
+    lengthSliderMs.setBounds(buttonsBounds.removeFromBottom(buttonsBounds.getWidth()));
+    lookaheadSliderMs.setBounds(buttonsBounds);
 
+
+}
+
+
+// ==================== Setups ==========================
+
+void HentaiDuckEditor::setupCurveDisplay() {
+    curveDisplay.onCurveUpdated = [this](){
+        audioProcessor.updateCurveValues(curveDisplay.getNormalizedPoints());
+    };
+
+    curveDisplay.onCurveUpdated(); // initial update
+
+}
+
+void HentaiDuckEditor::setupLengthSlider() {
+    auto &vTree = audioProcessor.vTree;
+    using prop = Property;
+
+    lengthSliderMs.setValuePrefix("Length: ");
+    lengthSliderMs.setValuePostfix(" ms");
+    lengthSliderMs.valueToString = [this](const float &val) -> std::string
+    {
+        float newVal = val;
+        if (val < 1000)
+        {
+            lengthSliderMs.setValuePostfix(" ms");
+        }
+        else
+        {
+            newVal /= 1000;
+            lengthSliderMs.setValuePostfix(" s");
+        }
+        return juce::String(newVal, 2, false).toStdString();
+    };
+    lengthSliderMs.onValueChanged = [this](const float &newVal)
+    {
+        audioProcessor.updateCurveLength(static_cast<double>(newVal));
+    };
+
+    lengthSliderMs.setValueTree(&vTree,
+                                vTree.getIDFromType(prop::LS_LENGTH_MS).value_or("undefined"),
+                                vTree.getIDFromType(prop::LS_RAW_NORMALIZED_VALUE).value_or("undefined"),
+                                vTree.getIDFromType(prop::LS_DISPLAY_VALUE).value_or("undefined"),
+                                vTree.getIDFromType(prop::LS_MIN_VALUE).value_or("undefined"),
+                                vTree.getIDFromType(prop::LS_MAX_VALUE).value_or("undefined"),
+                                vTree.getIDFromType(prop::LS_IS_MS).value_or("undefined"));
+}
+
+void HentaiDuckEditor::setupLookaheadSlider()
+{
+    lookaheadSliderMs.setValuePrefix("Lookahead: ");
+    lookaheadSliderMs.setValuePostfix(" ms");
+    lookaheadSliderMs.valueToString = [this](const float &val) -> std::string
+    {
+        float newVal = val;
+        if (val < 1000)
+        {
+            lookaheadSliderMs.setValuePostfix(" ms");
+        }
+        else
+        {
+            newVal /= 1000;
+            lookaheadSliderMs.setValuePostfix(" s");
+        }
+        return juce::String(newVal, 2, false).toStdString();
+    };
+    lookaheadSliderMs.onValueChanged = [this](const float &newVal)
+    {
+        // audioProcessor.updateCurveLength(static_cast<double>(newVal));
+    };
+
+    using prop = Property;
+    auto& vTree = audioProcessor.vTree;
+    // lookaheadSliderMs.setValueTree(
+    //     &vTree,
+    //     vTree.getIDFromType(prop::LS_LENGTH_MS).value_or("undefined"),
+    //     vTree.getIDFromType(prop::LS_RAW_NORMALIZED_VALUE).value_or("undefined"),
+    //     vTree.getIDFromType(prop::LS_DISPLAY_VALUE).value_or("undefined"),
+    //     vTree.getIDFromType(prop::LS_MIN_VALUE).value_or("undefined"),
+    //     vTree.getIDFromType(prop::LS_MAX_VALUE).value_or("undefined"),
+    //     vTree.getIDFromType(prop::LS_IS_MS).value_or("undefined")
+    // );
 }

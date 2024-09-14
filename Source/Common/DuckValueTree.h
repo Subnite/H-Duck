@@ -16,10 +16,10 @@ enum class Property {
 
 namespace duck::vt {
 
-class ValueTree : public subnite::vt::ValueTree<Property> {
+class ValueTree : public subnite::vt::ValueTreeBase, public subnite::vt::IDMap<Property> {
 public:
     ValueTree()
-    : subnite::vt::ValueTree<Property>()
+    : subnite::vt::ValueTreeBase(), subnite::vt::IDMap<Property>()
     {
         setupMap();
     };

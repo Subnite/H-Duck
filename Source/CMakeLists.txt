@@ -26,6 +26,7 @@ target_sources(${PLUGIN_PROJECT_NAME}
         GUI/CustomSliders.cpp
         PluginEditor.cpp
         PluginProcessor.cpp
+        Common/ValueTreeManager.cpp
 )
 message("****Added target sources")
 

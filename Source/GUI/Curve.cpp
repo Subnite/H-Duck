@@ -392,5 +392,5 @@ void duck::curve::CurveDisplay::updateTree() const {
     }
 
     cd.appendChild(np, undoManager);
-    vTree.setChild(p::CD_CURVE_DATA, cd);
+    vTree.setChild(vTree.getIDFromType(p::CD_CURVE_DATA).value_or("undefined"), cd);
 }

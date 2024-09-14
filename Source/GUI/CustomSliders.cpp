@@ -1,10 +1,9 @@
 #include "CustomSliders.h"
-#include "juce_core/juce_core.h"
 #include <algorithm>
 
 
 template <typename T>
-subnite::Slider<T>::Slider(T minValue, T maxValue, T defaultValue, duck::vt::ValueTree* vTree)
+subnite::Slider<T>::Slider(T minValue, T maxValue, T defaultValue)
     : normalizedRawValue(0), displayedValue(defaultValue),
     minValue(minValue), maxValue(maxValue), defaultValue(defaultValue),
     vTree(vTree)
@@ -17,10 +16,10 @@ subnite::Slider<T>::Slider(T minValue, T maxValue, T defaultValue, duck::vt::Val
     normalizedRawValue = v / static_cast<double>(range);
     updateDisplayedValueChecked(); // in case getFromValueTree fails
 
-    getFromValueTree();
+    // getFromValueTree();
 }
 
-template<typename T>
+template <typename T>
 subnite::Slider<T>::~Slider(){
     // maybe make sure that the mouse is normal
     setMouseCursor(juce::MouseCursor::NormalCursor);
@@ -45,17 +44,17 @@ std::string subnite::Slider<T>::getValueString() const {
     return prefix + valueToString(displayedValue) + postfix;
 }
 
-template<typename T>
+template <typename T>
 void subnite::Slider<T>::setValuePrefix(std::string prefix) {
     this->prefix = prefix;
 }
 
-template<typename T>
+template <typename T>
 void subnite::Slider<T>::setValuePostfix(std::string postfix) {
     this->postfix = postfix;
 }
 
-template<typename T>
+template <typename T>
 void subnite::Slider<T>::setValue(T newValue) {
     jassert (newValue <= maxValue && newValue >= minValue);
 
@@ -72,73 +71,43 @@ double subnite::Slider<T>::getValueAngle(const double& minAngle, const double& m
     return normalizedRawValue * range + minAngle;
 }
 
-template<typename T>
+template <typename T>
 void subnite::Slider<T>::getFromValueTree() {
     if (vTree == nullptr) return;
 
-    using prop = Property;
-    using id = juce::Identifier;
-
-    const auto sliderID = vTree->getIDFromType(prop::LS_LENGTH_MS).value_or(id{"undefined"});
-    const auto rawID = vTree->getIDFromType(prop::LS_RAW_NORMALIZED_VALUE).value_or(id{"undefined"});
-    const auto minValueID = vTree->getIDFromType(prop::LS_MIN_VALUE).value_or(id{"undefined"});
-    const auto maxValueID = vTree->getIDFromType(prop::LS_MAX_VALUE).value_or(id{"undefined"});
-    const auto isMsID = vTree->getIDFromType(prop::LS_IS_MS).value_or(id{"undefined"});
-    const auto displayValueID = vTree->getIDFromType(prop::LS_DISPLAY_VALUE).value_or(id{"undefined"});
-
-    auto slider = vTree->getRoot().getChildWithName(sliderID);
+    auto slider = vTree->getRoot().getChildWithName(sliderTreeUniqueID);
     if (!slider.isValid()) return; // didn't exist or wasn't child of root
     
-    auto raw = static_cast<double>(slider.getProperty(rawID));
+    auto raw = static_cast<double>(slider.getProperty(rawNormalizedValueID));
     auto min = static_cast<double>(slider.getProperty(minValueID));
     auto max = static_cast<double>(slider.getProperty(maxValueID));
     auto isMs = static_cast<bool>(slider.getProperty(isMsID));
     auto displayVal = static_cast<double>(slider.getProperty(displayValueID));
-
     
-    normalizedRawValue = raw;
-    minValue = min;
-    maxValue = max;
-    displayedValue = displayVal;
-    isMS = isMs;
+    this->normalizedRawValue = raw;
+    this->minValue = min;
+    this->maxValue = max;
+    this->displayedValue = displayVal;
+    this->isMS = isMs;
     
     updateDisplayedValueChecked(); // we're saving the display value too, but this is still useful for initialization.
 }
 
-template<typename T>
+template <typename T>
 void subnite::Slider<T>::updateValueTree() {
     if (vTree == nullptr) return;
 
-    using prop = Property;
-    using id = juce::Identifier;
+    juce::ValueTree slider{sliderTreeUniqueID};
 
-    const auto sliderID = vTree->getIDFromType(prop::LS_LENGTH_MS).value_or(id{"undefined"});
-    const auto rawID = vTree->getIDFromType(prop::LS_RAW_NORMALIZED_VALUE).value_or(id{"undefined"});
-    const auto minValueID = vTree->getIDFromType(prop::LS_MIN_VALUE).value_or(id{"undefined"});
-    const auto maxValueID = vTree->getIDFromType(prop::LS_MAX_VALUE).value_or(id{"undefined"});
-    const auto isMsID = vTree->getIDFromType(prop::LS_IS_MS).value_or(id{"undefined"});
-    const auto displayValueID = vTree->getIDFromType(prop::LS_DISPLAY_VALUE).value_or(id{"undefined"});
-    
-    juce::ValueTree slider{sliderID};
-
-    slider.setProperty(rawID, normalizedRawValue, nullptr);
+    slider.setProperty(rawNormalizedValueID, normalizedRawValue, nullptr);
     slider.setProperty(minValueID, minValue, nullptr);
     slider.setProperty(maxValueID, maxValue, nullptr);
     slider.setProperty(isMsID, isMS, nullptr); // this will be a variable later
     slider.setProperty(displayValueID, displayedValue, nullptr);
     
-    vTree->setChild(prop::LS_LENGTH_MS, slider);
+    vTree->setChild(sliderTreeUniqueID, slider);
 }
 
-template <typename T>
-T subnite::Slider<T>::getLengthMsFromTree(const duck::vt::ValueTree &tree) {
-    using id = juce::Identifier;
-    const auto lengthTree = tree.getRoot().getChildWithName(tree.getIDFromType(Property::LS_LENGTH_MS).value_or(id{"undefined"}));
-
-    double lengthMS = lengthTree.getProperty(tree.getIDFromType(Property::LS_DISPLAY_VALUE).value_or(id{"undefined"})); // RETURN DISPLAY VALUE!!!
-    
-    return static_cast<T>(lengthMS);
-}
 
 // ============= Visuals   =================
 
@@ -236,6 +205,21 @@ void subnite::Slider<T>::mouseDoubleClick(const juce::MouseEvent& e) {
     updateValueTree();
 }
 
+template <typename T>
+void subnite::Slider<T>::setValueTree(subnite::vt::ValueTreeBase* parentTree, juce::Identifier uniqueSliderTreeID,
+juce::Identifier rawNormalizedValueID, juce::Identifier displayValueID, juce::Identifier minValueID, juce::Identifier maxValueID, juce::Identifier isMsID) {
+    vTree = parentTree;
+    sliderTreeUniqueID = rawNormalizedValueID; // the unique tree to look for
+    
+    // properties
+    this->rawNormalizedValueID = rawNormalizedValueID;
+    this->displayValueID = displayValueID;
+    this->minValueID = minValueID;
+    this->maxValueID = maxValueID;
+    this->isMsID = isMsID;
+
+    getFromValueTree();
+}
 
 
 
