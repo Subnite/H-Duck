@@ -26,9 +26,16 @@ target_sources(${PLUGIN_PROJECT_NAME}
         GUI/CustomSliders.cpp
         PluginEditor.cpp
         PluginProcessor.cpp
-        Common/ValueTreeManager.cpp
 )
 message("****Added target sources")
+
+get_cmake_property (debug_configs DEBUG_CONFIGURATIONS)
+
+if(NOT debug_configs)
+  set (debug_configs Debug)
+endif()
+
+list (JOIN debug_configs "," debug_configs)
 
 target_compile_definitions(${PLUGIN_PROJECT_NAME}
     PUBLIC
@@ -36,6 +43,7 @@ target_compile_definitions(${PLUGIN_PROJECT_NAME}
         JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
         JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
         JUCE_VST3_CAN_REPLACE_VST2=0
+        $<$<CONFIG:${debug_configs}>:CMAKE_DEBUG>
 )
 
 message("****Added target compile definitions")

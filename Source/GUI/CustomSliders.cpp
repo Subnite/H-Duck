@@ -5,8 +5,7 @@
 template <typename T>
 subnite::Slider<T>::Slider(T minValue, T maxValue, T defaultValue)
     : normalizedRawValue(0), displayedValue(defaultValue),
-    minValue(minValue), maxValue(maxValue), defaultValue(defaultValue),
-    vTree(vTree)
+    minValue(minValue), maxValue(maxValue), defaultValue(defaultValue)
 {
     jassert(minValue < maxValue); // Minimum value should be lower than max
     jassert(defaultValue >= minValue && defaultValue <= maxValue); // Default value should be between [min : max] inclusive
@@ -209,7 +208,7 @@ template <typename T>
 void subnite::Slider<T>::setValueTree(subnite::vt::ValueTreeBase* parentTree, juce::Identifier uniqueSliderTreeID,
 juce::Identifier rawNormalizedValueID, juce::Identifier displayValueID, juce::Identifier minValueID, juce::Identifier maxValueID, juce::Identifier isMsID) {
     vTree = parentTree;
-    sliderTreeUniqueID = rawNormalizedValueID; // the unique tree to look for
+    this->sliderTreeUniqueID = uniqueSliderTreeID; // the unique tree to look for
     
     // properties
     this->rawNormalizedValueID = rawNormalizedValueID;

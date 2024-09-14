@@ -224,6 +224,7 @@ void duck::curve::CurveDisplay::mouseDrag(const juce::MouseEvent& event) {
 void duck::curve::CurveDisplay::mouseUp(const juce::MouseEvent& event) {
     lastDragOffset = juce::Point<int>(0,0);
     isDraggingIndex = -1;
+    updateTree();
 }
 
 void duck::curve::CurveDisplay::mouseDoubleClick(const juce::MouseEvent& event) {
@@ -306,7 +307,7 @@ void duck::curve::CurveDisplay::valueTreePropertyChanged(juce::ValueTree& treeWh
     auto treeType = vTree.getTypeFromID(treeWhosePropertyHasChanged.getType()).value_or(Property::COUNT);
 
     switch (treeType) {
-        case Property::CD_POINT:
+        case Property::T_POINT:
             changePoint(treeWhosePropertyHasChanged, property);
             break;
         default:
@@ -321,7 +322,7 @@ void duck::curve::CurveDisplay::changePoint(juce::ValueTree& treeWhosePropertyHa
     
     if (index < curvePointsNormalized.size()){    
         switch (type) {
-            case Property::CD_MAX_ABSOLUTE_POWER:
+            case Property::P_MAX_ABSOLUTE_POWER:
                 curvePointsNormalized[index].maxAbsPower = val;
                 break;
             default:
@@ -335,8 +336,8 @@ std::vector<duck::curve::Point<float>> duck::curve::CurveDisplay::getTreeNormali
     using id = juce::Identifier;
 
     const auto vtRoot = vTree.getRoot();
-    const auto curve = vtRoot.getChildWithName(vTree.getIDFromType(Property::CD_CURVE_DATA).value_or(id{"undefined"}));
-    const auto points = curve.getChildWithName(vTree.getIDFromType(Property::CD_NORMALIZED_POINTS).value_or(id{"undefined"}));
+    const auto curve = vtRoot.getChildWithName(vTree.getIDFromType(Property::T_CURVE_DATA).value_or(id{"undefined"}));
+    const auto points = curve.getChildWithName(vTree.getIDFromType(Property::T_NORMALIZED_POINTS).value_or(id{"undefined"}));
     const auto amtPoints = points.getNumChildren();
 
     std::vector<duck::curve::Point<float>> vec{};
@@ -344,22 +345,19 @@ std::vector<duck::curve::Point<float>> duck::curve::CurveDisplay::getTreeNormali
 
     vec.reserve(amtPoints);
     // vec.resize(amtPoints);
-    const auto coordsID = vTree.getIDFromType(Property::CD_COORDS).value_or(id{"undefined"});
-    const auto xID = vTree.getIDFromType(Property::CD_X).value_or(id{"undefined"});
-    const auto yID = vTree.getIDFromType(Property::CD_Y).value_or(id{"undefined"});
-    const auto sizeID = vTree.getIDFromType(Property::CD_SIZE).value_or(id{"undefined"});
-    const auto powerID = vTree.getIDFromType(Property::CD_POWER).value_or(id{"undefined"});
-    const auto maxAbsPowerID = vTree.getIDFromType(Property::CD_MAX_ABSOLUTE_POWER).value_or(id{"undefined"});
+    const auto xID = vTree.getIDFromType(Property::P_X).value_or(id{"undefined"});
+    const auto yID = vTree.getIDFromType(Property::P_Y).value_or(id{"undefined"});
+    const auto sizeID = vTree.getIDFromType(Property::P_SIZE).value_or(id{"undefined"});
+    const auto powerID = vTree.getIDFromType(Property::P_POWER).value_or(id{"undefined"});
+    const auto maxAbsPowerID = vTree.getIDFromType(Property::P_MAX_ABSOLUTE_POWER).value_or(id{"undefined"});
 
     for (size_t i = 0; i < amtPoints; i++) {
         const auto p = points.getChild(i);
-        const auto coords = p.getChildWithName(coordsID);
-        auto duckP = duck::curve::Point<float>(coords.getProperty(xID), coords.getProperty(yID));
+        auto duckP = duck::curve::Point<float>(p.getProperty(xID), p.getProperty(yID));
         duckP.size = p.getProperty(sizeID);
         duckP.power = p.getProperty(powerID);
         duckP.maxAbsPower = p.getProperty(maxAbsPowerID);
         vec.push_back(duckP);
-        //       vec[i] = duckP;
     }
 
     return vec;
@@ -374,23 +372,20 @@ void duck::curve::CurveDisplay::updateTree() const {
     auto undoManager = vTree.getUndoManager();
 
 
-    juce::ValueTree cd {vTree.getIDFromType(p::CD_CURVE_DATA).value_or(id{"undefined"})};
-    juce::ValueTree np {vTree.getIDFromType(p::CD_NORMALIZED_POINTS).value_or(id{"undefined"})};
+    juce::ValueTree cd {vTree.getIDFromType(p::T_CURVE_DATA).value_or(id{"undefined"})};
+    juce::ValueTree np {vTree.getIDFromType(p::T_NORMALIZED_POINTS).value_or(id{"undefined"})};
 
     for (const auto& point : curvePointsNormalized) {
-        juce::ValueTree treePoint{vTree.getIDFromType(p::CD_POINT).value_or(id{"undefined"})};
-        treePoint.setProperty(vTree.getIDFromType(p::CD_POWER).value_or(id{"undefined"}), {point.power}, undoManager);
-        treePoint.setProperty(vTree.getIDFromType(p::CD_MAX_ABSOLUTE_POWER).value_or(id{"undefined"}), {point.maxAbsPower}, undoManager);
-        treePoint.setProperty(vTree.getIDFromType(p::CD_SIZE).value_or(id{"undefined"}), {point.size}, undoManager);
+        juce::ValueTree treePoint{vTree.getIDFromType(p::T_POINT).value_or(id{"undefined"})};
+        treePoint.setProperty(vTree.getIDFromType(p::P_POWER).value_or(id{"undefined"}), {point.power}, undoManager);
+        treePoint.setProperty(vTree.getIDFromType(p::P_MAX_ABSOLUTE_POWER).value_or(id{"undefined"}), {point.maxAbsPower}, undoManager);
+        treePoint.setProperty(vTree.getIDFromType(p::P_SIZE).value_or(id{"undefined"}), {point.size}, undoManager);
+        treePoint.setProperty(vTree.getIDFromType(p::P_X).value_or(id{"undefined"}), {point.coords.x}, undoManager);
+        treePoint.setProperty(vTree.getIDFromType(p::P_Y).value_or(id{"undefined"}), {point.coords.y}, undoManager);
 
-        juce::ValueTree coords{vTree.getIDFromType(p::CD_COORDS).value_or(id{"undefined"})};
-        coords.setProperty(vTree.getIDFromType(p::CD_X).value_or(id{"undefined"}), {point.coords.x}, undoManager);
-        coords.setProperty(vTree.getIDFromType(p::CD_Y).value_or(id{"undefined"}), {point.coords.y}, undoManager);
-
-        treePoint.appendChild(coords, undoManager);
         np.appendChild(treePoint, undoManager);
     }
 
     cd.appendChild(np, undoManager);
-    vTree.setChild(vTree.getIDFromType(p::CD_CURVE_DATA).value_or("undefined"), cd);
+    vTree.setChild(vTree.getIDFromType(p::T_CURVE_DATA).value_or("undefined"), cd);
 }

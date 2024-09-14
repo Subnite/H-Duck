@@ -38,6 +38,9 @@ private:
     subnite::Slider<float> lengthSliderMs;
     subnite::Slider<float> lookaheadSliderMs;
 
+    juce::Rectangle<int> curveBounds;
+    juce::Rectangle<int> sliderBounds;
+
     void setupCurveDisplay();
     void setupLengthSlider();
     void setupLookaheadSlider();
