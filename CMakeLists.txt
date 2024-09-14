@@ -1,7 +1,7 @@
 # General info
 set(JUCE_SOURCE_DIR "C:/Program Files/JUCE_v8.0.1") # set juce source dir
-set(PLUGIN_PROJECT_NAME "HentaiDuck") # preferably no spaces
-set(PLUGIN_VST3_NAME "HentaiDuck") # name of the actual vst3 file
+set(PLUGIN_PROJECT_NAME "H-Duck") # preferably no spaces
+set(PLUGIN_VST3_NAME "H-Duck") # name of the actual vst3 file
 
 # Post Build Params
 set(COPY_VST3_AFTER_BUILD TRUE) # will copy to the paths in the list below if set to 'TRUE'
@@ -22,5 +22,5 @@ cmake_minimum_required(VERSION 3.15)
 set (CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # will create compile_commands.json for include paths etc IF GENERATOR IS A MAKEFILE like MinGW Makefiles
 
-project(${PLUGIN_PROJECT_NAME} VERSION 0.1.0)
+project(${PLUGIN_PROJECT_NAME} VERSION 0.1.1)
 add_subdirectory(Source) # creates the plugin, set other params in there
