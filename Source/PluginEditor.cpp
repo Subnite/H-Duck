@@ -64,7 +64,7 @@ void HentaiDuckEditor::resized()
     this->curveBounds = paddedBounds;
 
     curveDisplay.setBounds(paddedBounds);
-    lengthSliderMs.setBounds(buttonsBounds.removeFromBottom(buttonsBounds.getWidth()));
+    lengthSliderMs.setBounds(buttonsBounds.removeFromBottom(buttonsBounds.getHeight()*0.5f));
     lookaheadSliderMs.setBounds(buttonsBounds);
 }
 
@@ -137,7 +137,7 @@ void HentaiDuckEditor::setupLookaheadSlider()
     };
     lookaheadSliderMs.onValueChanged = [this](const float &newVal)
     {
-        // audioProcessor.updateCurveLength(static_cast<double>(newVal));
+        audioProcessor.updateLookahead(static_cast<double>(newVal));
     };
 
     using prop = Property;

@@ -11,6 +11,7 @@
 #include <mutex>
 #include "Curve.h"
 #include "DuckValueTree.h"
+#include "RingBuffer.hpp"
 
 //==============================================================================
 
@@ -58,8 +59,14 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     //==============================================================================
+    // updates the multiplier values in curveMultiplier to match the points.
     void updateCurveValues(const std::vector<duck::curve::Point<float>>& normalizedPoints);
+    // changes the size of curveMultiplier (matches sampleRate) and applies the values from the tree.
     void updateCurveLength(const double& ms);
+    // updates the size of the lookaheadBuffer and sets latency accordingly.
+    void updateLookahead(double ms);
+
+    // contains all info that is stored and restored from the plugin data block
     duck::vt::ValueTree vTree{};
 private:
   // list of multiplier for the curve
@@ -68,16 +75,27 @@ private:
   std::mutex curveGuard;
   // last read multiplier index
   int currentCurveIndex = 0;
-  size_t amtTriggers = 0;
 
+  size_t amtTriggers = 0;
   std::vector<size_t> noteStartPositions;
 
+  std::vector<RingBuffer<float>> lookaheadBuffer;
+
+  // changes the size of the curveMultiplier vector.
   void resizeCurve(size_t newSize);
 
   // need length since it might be triggered more than once before it ends
   void applyCurve(juce::AudioBuffer<float> &buffer);
 
-  double getLengthMsFromTree(const duck::vt::ValueTree& tree) const;
+  template <typename T>
+  static T getSliderMsFromTree(const duck::vt::ValueTree& tree, Property sliderTreeID, Property sliderPropertyID);
+
+
+
+  size_t sampleRate = 48000;
+  size_t samplesPerBlock = 512;
+  size_t numChannels = 2;
+  void busSettingsChanged(size_t sampleRate, size_t samplesPerBlock, size_t channels);
   //==============================================================================
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HentaiDuckProcessor)
 };
