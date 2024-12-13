@@ -11,3 +11,7 @@ projectd: CMakeLists.txt
 
 projectr: CMakeLists.txt
 	cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release
+
+docs: Doxyfile
+	echo Building docs to ./Docs/ ...
+	doxygen

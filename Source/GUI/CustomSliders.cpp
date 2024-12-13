@@ -1,7 +1,6 @@
 #include "CustomSliders.h"
 #include <algorithm>
 
-
 template <typename T>
 subnite::Slider<T>::Slider(T minValue, T maxValue, T defaultValue)
     : normalizedRawValue(0), displayedValue(defaultValue),
@@ -18,6 +17,10 @@ subnite::Slider<T>::Slider(T minValue, T maxValue, T defaultValue)
     getFromValueTree();
 }
 
+/**
+    Sets the mouse cursor type back to normal (just to make sure).
+    calls updateValueTree() to save the state.
+*/
 template <typename T>
 subnite::Slider<T>::~Slider(){
     // maybe make sure that the mouse is normal
@@ -25,8 +28,11 @@ subnite::Slider<T>::~Slider(){
     updateValueTree();
 }
 
-/*
-    updates the displayedValue from the normalizedRawValue, and clamping it between min and max. It's up to the user's normalizedToDisplayed function to make sure this doesn't need to be clamped.
+/**
+    updates the displayedValue from the normalizedRawValue, and clamping it between minValue and maxValue.
+    It's up to the user's normalizedToDisplayed function to make sure this doesn't need to be clamped.
+    @param updateTree calls onValueChanged() if set to true.
+    @see normalizedToDisplayed, onValueChanged
 */
 template <typename T>
 void subnite::Slider<T>::updateDisplayedValueChecked(bool updateTree) {
@@ -80,18 +86,21 @@ void subnite::Slider<T>::getFromValueTree() {
     auto raw = static_cast<double>(slider.getProperty(rawNormalizedValueID));
     auto min = static_cast<double>(slider.getProperty(minValueID));
     auto max = static_cast<double>(slider.getProperty(maxValueID));
-    auto isMs = static_cast<bool>(slider.getProperty(isMsID));
     auto displayVal = static_cast<double>(slider.getProperty(displayValueID));
     
     this->normalizedRawValue = raw;
     this->minValue = min;
     this->maxValue = max;
     this->displayedValue = displayVal;
-    this->isMS = isMs;
     
     updateDisplayedValueChecked(true); // we're saving the display value too, but this is still useful for initialization.
 }
 
+/**
+ * Since the vTree variable can be nullptr, it would just return without doing anything in that case.
+ *
+ * @see subnite::vt::ValueTreeBase::setChild, setValueTree
+ */
 template <typename T>
 void subnite::Slider<T>::updateValueTree() {
     if (vTree == nullptr) return;
@@ -101,7 +110,6 @@ void subnite::Slider<T>::updateValueTree() {
     slider.setProperty(rawNormalizedValueID, normalizedRawValue, nullptr);
     slider.setProperty(minValueID, minValue, nullptr);
     slider.setProperty(maxValueID, maxValue, nullptr);
-    slider.setProperty(isMsID, isMS, nullptr); // this will be a variable later
     slider.setProperty(displayValueID, displayedValue, nullptr);
     
     vTree->setChild(sliderTreeUniqueID, slider);
@@ -207,7 +215,7 @@ void subnite::Slider<T>::mouseDoubleClick(const juce::MouseEvent& e) {
 
 template <typename T>
 void subnite::Slider<T>::setValueTree(subnite::vt::ValueTreeBase* parentTree, juce::Identifier uniqueSliderTreeID,
-juce::Identifier rawNormalizedValueID, juce::Identifier displayValueID, juce::Identifier minValueID, juce::Identifier maxValueID, juce::Identifier isMsID) {
+juce::Identifier rawNormalizedValueID, juce::Identifier displayValueID, juce::Identifier minValueID, juce::Identifier maxValueID) {
     vTree = parentTree;
     this->sliderTreeUniqueID = uniqueSliderTreeID; // the unique tree to look for
     
@@ -216,7 +224,6 @@ juce::Identifier rawNormalizedValueID, juce::Identifier displayValueID, juce::Id
     this->displayValueID = displayValueID;
     this->minValueID = minValueID;
     this->maxValueID = maxValueID;
-    this->isMsID = isMsID;
 
     getFromValueTree();
 }

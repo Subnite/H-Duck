@@ -10,7 +10,7 @@ enum class Property {
     
     // properties
     P_POWER, P_MAX_ABSOLUTE_POWER, P_SIZE, P_X, P_Y,
-    P_IS_MS, P_RAW_NORMALIZED_VALUE, P_DISPLAY_VALUE, P_MIN_VALUE, P_MAX_VALUE,
+    P_RAW_NORMALIZED_VALUE, P_DISPLAY_VALUE, P_MIN_VALUE, P_MAX_VALUE,
     
     COUNT
 };
@@ -55,7 +55,6 @@ public:
         map[p::P_Y] = id{"y"};
 
         // slider properties
-        map[p::P_IS_MS] = id{"isMS"};
         map[p::P_RAW_NORMALIZED_VALUE] = id{"rawNormalizedValue"};
         map[p::P_DISPLAY_VALUE] = id{"displayValue"};
         map[p::P_MIN_VALUE] = id{"minValue"};
@@ -84,7 +83,6 @@ public:
 
         // right now the length slider tree is created by the slider class, changing this would also work, but then add all possible values.
         juce::ValueTree lengthSliderTree{getIDFromType(prop::T_LENGTH_MS).value_or(id{"undefined"})};
-        lengthSliderTree.setProperty(getIDFromType(prop::P_IS_MS).value_or(id{"undefined"}), true, nullptr);
         lengthSliderTree.setProperty(getIDFromType(prop::P_DISPLAY_VALUE).value_or(id{"undefined"}), 300.0, nullptr);
         lengthSliderTree.setProperty(getIDFromType(prop::P_MIN_VALUE).value_or(id{"undefined"}), 10.0, nullptr);
         lengthSliderTree.setProperty(getIDFromType(prop::P_MAX_VALUE).value_or(id{"undefined"}), 2000.0, nullptr);
@@ -94,7 +92,6 @@ public:
 
 
         juce::ValueTree lookaheadSliderTree{getIDFromType(prop::T_LOOKAHEAD_MS).value_or(id{"undefined"})};
-        lookaheadSliderTree.setProperty(getIDFromType(prop::P_IS_MS).value_or(id{"undefined"}), true, nullptr);
         lookaheadSliderTree.setProperty(getIDFromType(prop::P_DISPLAY_VALUE).value_or(id{"undefined"}), 0.0, nullptr);
         lookaheadSliderTree.setProperty(getIDFromType(prop::P_MIN_VALUE).value_or(id{"undefined"}), 0.0, nullptr);
         lookaheadSliderTree.setProperty(getIDFromType(prop::P_MAX_VALUE).value_or(id{"undefined"}), 50.0, nullptr);

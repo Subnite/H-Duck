@@ -68,7 +68,18 @@ void HentaiDuckEditor::resized()
     lookaheadSliderMs.setBounds(buttonsBounds);
 }
 
+//
+//
+//
+//
+//
 // ==================== Setups ==========================
+//
+//
+//
+//
+//
+//
 
 void HentaiDuckEditor::setupCurveDisplay()
 {
@@ -87,7 +98,7 @@ void HentaiDuckEditor::setupLengthSlider()
 
     lengthSliderMs.setValuePrefix("Length: ");
     lengthSliderMs.setValuePostfix(" ms");
-    lengthSliderMs.valueToString = [this](const float &val) -> std::string
+    lengthSliderMs.valueToString = [this](float val) -> std::string
     {
         float newVal = val;
         if (val < 1000)
@@ -101,7 +112,7 @@ void HentaiDuckEditor::setupLengthSlider()
         }
         return juce::String(newVal, 2, false).toStdString();
     };
-    lengthSliderMs.onValueChanged = [this](const float &newVal)
+    lengthSliderMs.onValueChanged = [this](float newVal)
     {
         audioProcessor.updateCurveLength(static_cast<double>(newVal));
     };
@@ -112,8 +123,7 @@ void HentaiDuckEditor::setupLengthSlider()
         vTree.getIDFromType(prop::P_RAW_NORMALIZED_VALUE).value_or("undefined"),
         vTree.getIDFromType(prop::P_DISPLAY_VALUE).value_or("undefined"),
         vTree.getIDFromType(prop::P_MIN_VALUE).value_or("undefined"),
-        vTree.getIDFromType(prop::P_MAX_VALUE).value_or("undefined"),
-        vTree.getIDFromType(prop::P_IS_MS).value_or("undefined")
+        vTree.getIDFromType(prop::P_MAX_VALUE).value_or("undefined")
     );
 }
 
@@ -121,7 +131,7 @@ void HentaiDuckEditor::setupLookaheadSlider()
 {
     lookaheadSliderMs.setValuePrefix("Lookahead: ");
     lookaheadSliderMs.setValuePostfix(" ms");
-    lookaheadSliderMs.valueToString = [this](const float &val) -> std::string
+    lookaheadSliderMs.valueToString = [this](float val) -> std::string
     {
         float newVal = val;
         if (val < 1000)
@@ -135,7 +145,7 @@ void HentaiDuckEditor::setupLookaheadSlider()
         }
         return juce::String(newVal, 2, false).toStdString();
     };
-    lookaheadSliderMs.onValueChanged = [this](const float &newVal)
+    lookaheadSliderMs.onValueChanged = [this](float newVal)
     {
         audioProcessor.updateLookahead(static_cast<double>(newVal));
     };
@@ -150,6 +160,6 @@ void HentaiDuckEditor::setupLookaheadSlider()
         vTree.getIDFromType(prop::P_RAW_NORMALIZED_VALUE).value_or("undefined"),
         vTree.getIDFromType(prop::P_DISPLAY_VALUE).value_or("undefined"),
         vTree.getIDFromType(prop::P_MIN_VALUE).value_or("undefined"),
-        vTree.getIDFromType(prop::P_MAX_VALUE).value_or("undefined"),
-        vTree.getIDFromType(prop::P_IS_MS).value_or("undefined"));
+        vTree.getIDFromType(prop::P_MAX_VALUE).value_or("undefined")
+    );
 }
