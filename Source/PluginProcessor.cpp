@@ -62,7 +62,10 @@ void HentaiDuckProcessor::applyCurve(juce::AudioBuffer<float> &buffer) {
         // if this sample is a trigger position, restart the curve counter
         for (size_t i = 0; i < amtTriggers; i++) {
             const auto startPos = noteStartPositions[i];
-            if (sample == startPos) currentCurveIndex = 0;
+            if (sample == startPos) {
+                currentCurveIndex = 0;
+                sidechainTriggeredBroadcaster.sendChangeMessage();
+            }
         }
 
         for (size_t ch = 0;

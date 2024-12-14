@@ -12,6 +12,7 @@
 #include "PluginProcessor.h"
 #include "Curve.h"
 #include "CustomSliders.h"
+#include "GifViewer.h"
 
 //==============================================================================
 /**
@@ -23,6 +24,7 @@ public:
     ~HentaiDuckEditor() override;
 
     //==============================================================================
+    void paintOverChildren (juce::Graphics&) override;
     void paint (juce::Graphics&) override;
     void resized() override;
 
@@ -41,9 +43,12 @@ private:
     juce::Rectangle<int> curveBounds;
     juce::Rectangle<int> sliderBounds;
 
+    std::unique_ptr<duck::GifViewer> gifViewer;
+
     void setupCurveDisplay();
     void setupLengthSlider();
     void setupLookaheadSlider();
+    void setupGifViewer();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HentaiDuckEditor)
 };

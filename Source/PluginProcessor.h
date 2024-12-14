@@ -68,6 +68,7 @@ public:
 
     // contains all info that is stored and restored from the plugin data block
     duck::vt::ValueTree vTree{};
+    juce::ChangeBroadcaster sidechainTriggeredBroadcaster{};
 private:
   // list of multiplier for the curve
   std::vector<float> curveMultiplier;

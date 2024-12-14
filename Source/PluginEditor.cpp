@@ -22,11 +22,13 @@ HentaiDuckEditor::HentaiDuckEditor(HentaiDuckProcessor &p)
     setResizable(true, true);
     setResizeLimits(400, 250, 1500, 1000);
 
+    setupGifViewer();
     setupCurveDisplay();
     setupLengthSlider();
     setupLookaheadSlider();
 
     // make all visible
+    addAndMakeVisible(gifViewer.get());
     addAndMakeVisible(&curveDisplay);
     addAndMakeVisible(&lengthSliderMs);
     addAndMakeVisible(&lookaheadSliderMs);
@@ -37,11 +39,8 @@ HentaiDuckEditor::~HentaiDuckEditor()
 }
 
 //==============================================================================
-void HentaiDuckEditor::paint(juce::Graphics &g)
+void HentaiDuckEditor::paintOverChildren(juce::Graphics &g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll(juce::Colours::purple.withSaturation(0.5f).withBrightness(0.10f));
-
     auto bounds = curveBounds;
     g.setColour(juce::Colours::grey.withLightness(0.6f));
     g.drawRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 5.f, 3.f);
@@ -50,9 +49,17 @@ void HentaiDuckEditor::paint(juce::Graphics &g)
     g.drawRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 5.f, 3.f);
 }
 
+void HentaiDuckEditor::paint(juce::Graphics &g)
+{
+    // (Our component is opaque, so we must completely fill the background with a solid colour)
+    g.fillAll(juce::Colours::purple.withSaturation(0.5f).withBrightness(0.10f));
+}
+
 void HentaiDuckEditor::resized()
 {
     auto bounds = getLocalBounds();
+    if (gifViewer.get() != nullptr)
+        gifViewer->setBounds(bounds);
     auto paddedBounds = bounds.withSizeKeepingCentre(
         bounds.getWidth() - sectionPadding,
         bounds.getHeight() - sectionPadding);
@@ -162,4 +169,26 @@ void HentaiDuckEditor::setupLookaheadSlider()
         vTree.getIDFromType(prop::P_MIN_VALUE).value_or("undefined"),
         vTree.getIDFromType(prop::P_MAX_VALUE).value_or("undefined")
     );
+}
+
+void HentaiDuckEditor::setupGifViewer() {
+    auto json = duck::GifViewer::getGifJsonFile();
+
+    // 2. get full settings json object
+    var rootVar = JSON::parse(json);
+    if (!rootVar.isVoid());
+    DynamicObject* rootObject = rootVar.getDynamicObject();
+    if (rootObject == nullptr) 
+        gifViewer = std::make_unique<duck::GifViewer>("catgif.png", &audioProcessor.sidechainTriggeredBroadcaster);
+;
+
+    // 3. get the gif object in question
+    auto gifVar = rootObject->getProperty(juce::Identifier{"active_gif"});
+    if (!gifVar.isVoid() && gifVar.isString()) {
+        String value = gifVar.operator juce::String();
+        gifViewer = std::make_unique<duck::GifViewer>(value.toStdString(), &audioProcessor.sidechainTriggeredBroadcaster);
+    } else {
+        gifViewer = std::make_unique<duck::GifViewer>("catgif.png", &audioProcessor.sidechainTriggeredBroadcaster);
+    }
+    gifViewer->setBounds(getLocalBounds());
 }
