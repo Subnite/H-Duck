@@ -1,0 +1,50 @@
+{
+    "how-to-use": [
+        "active_gif:                the name of the gif that is used",
+        "title has to be the name of the gif (which is actually an image with frames from top left to bottom right)",
+        "rows:                      how many rows are in the picture (bottom to top) with 1 being the minimum",
+        "columns:                   how many columns are in the picture (left to right) with 1 being the minimum",
+        "total_frames:              the total amount of frames that are embedded in the picture, with 1 being the minimum",
+        "idle_start_frame_index:    at which number (top left to bottom right) to start the idle animation, 0 is the minimum",
+        "idle_end_frame_index:      at which number (top left to bottom right) to end the idle animation, 0 is the minimum",
+        "idle_fps:                  how many frames per second to update the idle animation",
+        "trigger_start_index:       same as idle start, but then for when the ducker is triggered",
+        "trigger_end_index:         same as idle end, but then for when the ducker is triggered",
+        "trigger_fps:               how many frames per second to update the trigger animation",
+        "bounce_back:               whether to smoothly go back to trigger_start_index after reaching trigger_end_index, or just jump to the start"
+    ],
+    
+    "active_gif": "grugif.png",
+
+    "catgif.png": {
+        "rows": 1,
+        "columns": 7,
+        "total_frames": 7,
+
+        "idle_start_frame_index": 0,
+        "idle_end_frame_index": 1,
+        "idle_fps": 3,
+
+        "trigger_start_index": 2,
+        "trigger_end_index": 6,
+        "trigger_fps": 7.0,
+
+        "bounce_back": true
+    },
+
+    "grugif.png": {
+        "rows": 2,
+        "columns": 4,
+        "total_frames": 7,
+
+        "idle_start_frame_index": 0,
+        "idle_end_frame_index": 1,
+        "idle_fps": 5,
+
+        "trigger_start_index": 1,
+        "trigger_end_index": 6,
+        "trigger_fps": 7.0,
+
+        "bounce_back": false
+    }
+}
